@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.home.domain.qna.repository.QnaRepository">
+
+    <resultMap id="qnaResultMap" type="com.example.home.domain.qna.entity.Qna">
+        <id     property="qnaId"     column="qna_id"/>
+        <result property="title"     column="title"/>
+        <result property="writerId"  column="writer_id"/>
+        <result property="writer"    column="writer"/>
+        <result property="content"   column="content"/>
+        <result property="answered"  column="answered"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="qnaResultMap">
+        SELECT qna_id, title, writer_id, writer, content, answered, created_at, updated_at
+        FROM qna
+        WHERE qna_id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="qnaResultMap">
+        SELECT qna_id, title, writer_id, writer, content, answered, created_at, updated_at
+        FROM qna
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM qna
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="qnaId">
+        INSERT INTO qna (title, writer_id, writer, content, answered, created_at, updated_at)
+        VALUES (#{title}, #{writerId}, #{writer}, #{content}, #{answered}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE qna
+        SET title      = #{title},
+            content    = #{content},
+            updated_at = NOW()
+        WHERE qna_id = #{qnaId}
+    </update>
+
+    <update id="updateAnswered">
+        UPDATE qna
+        SET answered   = #{answered},
+            updated_at = NOW()
+        WHERE qna_id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM qna WHERE qna_id = #{id}
+    </delete>
+
+</mapper>

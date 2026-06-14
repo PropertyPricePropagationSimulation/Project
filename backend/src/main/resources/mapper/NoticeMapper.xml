@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.home.domain.notice.repository.NoticeRepository">
+
+    <resultMap id="noticeResultMap" type="com.example.home.domain.notice.entity.Notice">
+        <id     property="noticeId"  column="notice_id"/>
+        <result property="title"     column="title"/>
+        <result property="writerId"  column="writer_id"/>
+        <result property="writer"    column="writer"/>
+        <result property="content"   column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="noticeResultMap">
+        SELECT notice_id, title, writer_id, writer, content, created_at, updated_at
+        FROM notice
+        WHERE notice_id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="noticeResultMap">
+        SELECT notice_id, title, writer_id, writer, content, created_at, updated_at
+        FROM notice
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM notice
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="noticeId">
+        INSERT INTO notice (title, writer_id, writer, content, created_at, updated_at)
+        VALUES (#{title}, #{writerId}, #{writer}, #{content}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE notice
+        SET title      = #{title},
+            content    = #{content},
+            updated_at = NOW()
+        WHERE notice_id = #{noticeId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM notice WHERE notice_id = #{id}
+    </delete>
+
+</mapper>
