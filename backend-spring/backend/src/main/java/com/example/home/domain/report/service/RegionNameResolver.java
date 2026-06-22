@@ -42,4 +42,12 @@ public final class RegionNameResolver {
     public static String displayName(String regionCode) {
         return REGION_NAMES.getOrDefault(regionCode, "지역 정보 없음");
     }
+
+    public static boolean containsRegionCode(String content) {
+        return REGION_NAMES.keySet().stream().anyMatch(content::contains);
+    }
+
+    public static Map<String, String> regionNames() {
+        return REGION_NAMES;
+    }
 }

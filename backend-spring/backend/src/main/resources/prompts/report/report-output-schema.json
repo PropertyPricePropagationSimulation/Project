@@ -1,0 +1,17 @@
+{
+  "executive_summary": "string",
+  "sections": [
+    {
+      "title": "string",
+      "content": "string"
+    }
+  ],
+  "regional_trends": [
+    {
+      "region_name": "string",
+      "trend": "string",
+      "evidence": ["string"]
+    }
+  ],
+  "cautions": ["string"]
+}

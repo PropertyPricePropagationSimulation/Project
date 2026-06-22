@@ -10,6 +10,7 @@ public record ReportDocument(
         ReportSource source,
         ReportDraft draft,
         @JsonProperty("ai_enhancement") JsonNode aiEnhancement,
+        ReportGeneration generation,
         @JsonProperty("analysis_result") JsonNode analysisResult
 ) {
 }

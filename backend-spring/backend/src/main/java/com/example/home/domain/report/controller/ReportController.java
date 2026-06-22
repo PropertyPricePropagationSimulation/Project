@@ -25,14 +25,16 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    @Operation(summary = "리포트 초안 생성", description = "캐시된 분석 결과로 AI 없는 리포트 초안을 생성해 seed에 저장합니다.")
+    @Operation(
+            summary = "AI 리포트 생성",
+            description = "캐시된 분석 결과로 초안을 생성한 뒤 AI가 지역별 동향을 고도화해 seed에 저장합니다. AI 호출에 실패하면 초안 리포트를 반환합니다.")
     @PostMapping
     public ResponseEntity<BaseResponse<ReportDocument>> create(@RequestBody @Valid CreateReportRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("리포트 초안 생성 완료", reportService.create(request)));
+                .body(BaseResponse.success("AI 리포트 생성 완료", reportService.create(request)));
     }
 
-    @Operation(summary = "리포트 조회", description = "seed에 저장된 리포트 초안을 조회합니다.")
+    @Operation(summary = "리포트 조회", description = "seed에 저장된 초안·AI 고도화 결과를 조회합니다.")
     @GetMapping("/{reportId}")
     public ResponseEntity<BaseResponse<ReportDocument>> get(@PathVariable String reportId) {
         return ResponseEntity.ok(BaseResponse.success("리포트 조회 완료", reportService.get(reportId)));
