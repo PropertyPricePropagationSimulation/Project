@@ -17,7 +17,6 @@ const store       = useAnalysisStore()
 const reportStore = useReportStore()
 
 // ── 타임라인 월 목록 (window_months 기반 동적 생성) ─────────────────────────
-// T-3, T-2, T-1, T+0, T+1 ... T+{windowMonths}
 const MONTHS = computed(() => {
   const pre  = ['T-3', 'T-2', 'T-1']
   const post = Array.from({ length: store.windowMonths }, (_, i) => `T+${i + 1}`)
@@ -30,7 +29,6 @@ const curMonth      = ref(3)    // MONTHS 인덱스, T+0 = 3 고정
 const playing       = ref(false)
 const showLabels    = ref(true)
 
-// windowMonths 변경 시 curMonth가 범위를 벗어나면 클램프
 watch(() => store.windowMonths, () => {
   const max = MONTHS.value.length - 1
   if (curMonth.value > max) curMonth.value = max
@@ -49,7 +47,6 @@ const events = computed<MapEvent[]>(() =>
 
 const currentEvent = computed(() => events.value[selectedEvIdx.value])
 
-// curMonth → store 동기화
 watch(curMonth, m => { store.currentRelativeMonth = m - 3 })
 
 // ── 이벤트 선택 ────────────────────────────────────────────────────────────
@@ -74,9 +71,9 @@ async function handleReportAction() {
   }
   if (store.selectedEventId === null || !store.analysisResult) return
   await reportStore.generate({
-    event_id: store.selectedEventId,
+    event_id:      store.selectedEventId,
     window_months: store.windowMonths,
-    region_codes: store.regionCodes.length > 0 ? store.regionCodes : undefined,
+    region_codes:  store.regionCodes.length > 0 ? store.regionCodes : undefined,
   })
 }
 
@@ -139,16 +136,16 @@ onMounted(async () => {
       </div>
     </div>
 
-      <MetricsPanel
-        :regions="store.analysisResult?.regions ?? []"
-        :current-relative-month="curMonth - 3"
-      />
-      <ReportPreview
-        v-if="reportStore.report"
-        :report="reportStore.report"
-        :downloading="reportStore.loading"
-        @download="reportStore.download"
-      />
+    <MetricsPanel
+      :regions="store.analysisResult?.regions ?? []"
+      :current-relative-month="curMonth - 3"
+    />
+    <ReportPreview
+      v-if="reportStore.report"
+      :report="reportStore.report"
+      :downloading="reportStore.loading"
+      @download="reportStore.download"
+    />
 
       <TimelineSlider
       :months="MONTHS"

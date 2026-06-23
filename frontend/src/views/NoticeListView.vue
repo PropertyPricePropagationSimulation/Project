@@ -34,75 +34,115 @@ function goPage(p: number) {
 onMounted(load)
 watch(page, load)
 
-function fmtDate(s: string) { return s?.slice(0, 10) ?? '' }
+function fmtDate(s: string) {
+  if (!s) return ''
+  const d = new Date(s)
+  const now = new Date()
+  const diff = (now.getTime() - d.getTime()) / 1000
+  if (diff < 60) return '방금 전'
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}일 전`
+  return s.slice(0, 10)
+}
 </script>
 
 <template>
-  <div class="pv">
+  <div class="nv">
     <AppHeader />
-    <main class="pv-main">
-      <div class="pv-inner">
-        <h1 class="pv-title">공지사항</h1>
+    <main class="nv-main">
+      <div class="nv-inner">
 
-        <div v-if="loading" class="pv-loading">불러오는 중...</div>
-
-        <table v-else class="pv-table">
-          <thead>
-            <tr>
-              <th class="pv-th-num">번호</th>
-              <th>제목</th>
-              <th class="pv-th-w">작성자</th>
-              <th class="pv-th-d">날짜</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="notices.length === 0">
-              <td colspan="4" class="pv-empty">등록된 공지사항이 없습니다.</td>
-            </tr>
-            <tr v-for="n in notices" :key="n.noticeId" class="pv-row"
-                @click="router.push(`/notices/${n.noticeId}`)">
-              <td class="pv-num">{{ n.noticeId }}</td>
-              <td class="pv-ttl">{{ n.title }}</td>
-              <td class="pv-w">{{ n.writer }}</td>
-              <td class="pv-d">{{ fmtDate(n.createdAt) }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="pv-pg">
-          <button :disabled="page <= 1"            @click="goPage(page - 1)" class="pv-pg-btn">‹</button>
-          <button v-for="p in totalPages()" :key="p"
-                  :class="['pv-pg-btn', { on: p === page }]"
-                  @click="goPage(p)">{{ p }}</button>
-          <button :disabled="page >= totalPages()" @click="goPage(page + 1)" class="pv-pg-btn">›</button>
+        <div class="nv-top">
+          <h1 class="nv-title">공지사항</h1>
+          <span class="nv-count">총 {{ totalCount }}건</span>
         </div>
+
+        <div v-if="loading" class="nv-loading">
+          <div class="nv-skeleton" v-for="i in 5" :key="i" />
+        </div>
+
+        <ul v-else class="nv-list">
+          <li v-if="notices.length === 0" class="nv-empty">
+            <div class="nv-empty-icon">📋</div>
+            <p>등록된 공지사항이 없습니다.</p>
+          </li>
+          <li
+            v-for="(n, idx) in notices"
+            :key="n.noticeId"
+            class="nv-item"
+            @click="router.push(`/notices/${n.noticeId}`)"
+          >
+            <div class="nv-item-left">
+              <span class="nv-num">{{ totalCount - (page - 1) * PAGE_SIZE - idx }}</span>
+              <div class="nv-item-body">
+                <p class="nv-item-title">{{ n.title }}</p>
+                <div class="nv-item-meta">
+                  <span class="nv-writer">{{ n.writer }}</span>
+                  <span class="nv-dot">·</span>
+                  <span class="nv-date">{{ fmtDate(n.createdAt) }}</span>
+                </div>
+              </div>
+            </div>
+            <svg class="nv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </li>
+        </ul>
+
+        <div class="nv-pg">
+          <button :disabled="page <= 1" @click="goPage(page - 1)" class="nv-pg-btn">‹</button>
+          <button
+            v-for="p in totalPages()" :key="p"
+            :class="['nv-pg-btn', { on: p === page }]"
+            @click="goPage(p)"
+          >{{ p }}</button>
+          <button :disabled="page >= totalPages()" @click="goPage(page + 1)" class="nv-pg-btn">›</button>
+        </div>
+
       </div>
     </main>
   </div>
 </template>
 
 <style scoped>
-.pv { min-height: 100vh; background: #f8fafc; }
-.pv-main { padding: 40px 24px; }
-.pv-inner { max-width: 900px; margin: 0 auto; }
-.pv-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 24px; }
-.pv-loading { text-align: center; color: #94a3b8; padding: 40px; }
-.pv-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-.pv-table th { padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-.pv-th-num { width: 60px; }
-.pv-th-w   { width: 100px; }
-.pv-th-d   { width: 110px; }
-.pv-row { cursor: pointer; transition: background .12s; }
-.pv-row:hover td { background: #f8fafc; }
-.pv-table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #334155; }
-.pv-table tr:last-child td { border-bottom: none; }
-.pv-num { color: #94a3b8; font-size: 13px; }
-.pv-ttl { font-weight: 500; }
-.pv-w, .pv-d { color: #94a3b8; font-size: 13px; }
-.pv-empty { text-align: center; color: #94a3b8; padding: 40px; }
-.pv-pg { display: flex; justify-content: center; gap: 4px; margin-top: 24px; }
-.pv-pg-btn { min-width: 36px; height: 36px; padding: 0 8px; border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; cursor: pointer; font-size: 14px; color: #475569; transition: all .12s; }
-.pv-pg-btn:hover:not(:disabled) { border-color: #cbd5e1; color: #1e293b; }
-.pv-pg-btn.on { background: #1e293b; color: #fff; border-color: #1e293b; }
-.pv-pg-btn:disabled { opacity: .4; cursor: not-allowed; }
+.nv { min-height: 100vh; background: #f8fafc; }
+.nv-main { padding: 40px 24px; }
+.nv-inner { max-width: 900px; margin: 0 auto; }
+
+.nv-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
+.nv-title { font-size: 22px; font-weight: 700; color: #1e293b; }
+.nv-count { font-size: 13px; color: #94a3b8; }
+
+/* 로딩 스켈레톤 */
+.nv-loading { display: flex; flex-direction: column; gap: 1px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.nv-skeleton { height: 72px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+/* 목록 */
+.nv-list { list-style: none; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.nv-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background .12s; }
+.nv-item:last-child { border-bottom: none; }
+.nv-item:hover { background: #f8fafc; }
+.nv-item-left { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
+.nv-num { font-size: 12px; color: #cbd5e1; font-weight: 600; min-width: 28px; text-align: center; flex-shrink: 0; }
+.nv-item-body { flex: 1; min-width: 0; }
+.nv-item-title { font-size: 15px; font-weight: 500; color: #1e293b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nv-item:hover .nv-item-title { color: #3b82f6; }
+.nv-item-meta { display: flex; align-items: center; gap: 6px; }
+.nv-writer { font-size: 12px; color: #94a3b8; }
+.nv-dot { font-size: 12px; color: #cbd5e1; }
+.nv-date { font-size: 12px; color: #94a3b8; }
+.nv-arrow { width: 16px; height: 16px; color: #cbd5e1; flex-shrink: 0; transition: color .12s; }
+.nv-item:hover .nv-arrow { color: #94a3b8; }
+
+/* 비어있음 */
+.nv-empty { padding: 60px 20px; text-align: center; }
+.nv-empty-icon { font-size: 36px; margin-bottom: 12px; }
+.nv-empty p { font-size: 14px; color: #94a3b8; }
+
+/* 페이지네이션 */
+.nv-pg { display: flex; justify-content: center; gap: 4px; margin-top: 24px; }
+.nv-pg-btn { min-width: 36px; height: 36px; padding: 0 8px; border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; cursor: pointer; font-size: 14px; color: #475569; transition: all .12s; }
+.nv-pg-btn:hover:not(:disabled) { border-color: #cbd5e1; color: #1e293b; }
+.nv-pg-btn.on { background: #1e293b; color: #fff; border-color: #1e293b; }
+.nv-pg-btn:disabled { opacity: .4; cursor: not-allowed; }
 </style>
