@@ -1,11 +1,11 @@
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
-import { getNotices, type Notice } from '@/api/noticeApi'
+import { getNotices } from '@/api/noticeApi'
 
 const router  = useRouter()
-const notices = ref<Notice[]>([])
+const notices = ref([])
 
 onMounted(async () => {
   try {
@@ -14,7 +14,7 @@ onMounted(async () => {
   } catch {}
 })
 
-function fmtDate(s: string) { return s?.slice(0, 10) ?? '' }
+function fmtDate(s) { return s?.slice(0, 10) ?? '' }
 </script>
 
 <template>
