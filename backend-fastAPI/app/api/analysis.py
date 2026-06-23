@@ -5,7 +5,7 @@ import logging
 
 from fastapi import APIRouter, Body, HTTPException, Query
 
-from app.schemas import EventWindowAnalysisRequest
+from app.schemas import EventWindowAnalysisRequest, EventWindowAnalysisResponse
 from app.config import BASE_DIR
 from app.services import analysis as analysis_service
 from app.services.duckdb_service import SUMMARY_TABLE, get_connection
@@ -170,7 +170,7 @@ async def run_analysis():
     }
 
 
-@router.post("/event-window")
+@router.post("/event-window", response_model=EventWindowAnalysisResponse)
 async def run_event_window_analysis(
     payload: EventWindowAnalysisRequest = Body(
         ...,

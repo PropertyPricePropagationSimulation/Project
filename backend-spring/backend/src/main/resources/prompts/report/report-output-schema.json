@@ -1,0 +1,19 @@
+{
+  "executive_summary": "string",
+  "sections": [
+    {
+      "title": "string",
+      "content": "string"
+    }
+  ],
+  "regional_trends": [
+    {
+      "region_name": "string",
+      "selection_reason": "string",
+      "trend": "string",
+      "evidence": ["at least two dated observations with price and/or transaction-volume changes"],
+      "comparative_interpretation": "string"
+    }
+  ],
+  "cautions": ["string"]
+}

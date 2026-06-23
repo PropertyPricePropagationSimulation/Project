@@ -27,22 +27,33 @@ public class AiServerClient {
         AiServerRequest body = new AiServerRequest(
                 request.eventId(),
                 request.windowMonths(),
-                request.regionCodes()
-        );
+                request.regionCodes());
 
         try {
-            return aiServerWebClient.post()
+            EventWindowResponse response = aiServerWebClient.post()
                     .uri("/analysis/event-window")
                     .bodyValue(body)
                     .retrieve()
                     .bodyToMono(EventWindowResponse.class)
                     .timeout(TIMEOUT)
                     .block();
+            if (response == null) {
+                log.error("AI 분석 서버가 2xx 응답과 함께 빈 본문을 반환했습니다. request={}", body);
+                throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
+            }
+            return response;
+        } catch (BusinessException e) {
+            throw e;
         } catch (WebClientResponseException e) {
-            log.error("AI 서버 응답 오류: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("AI 서버 응답 오류: type={}, status={}, headers={}, body={}",
+                    e.getClass().getSimpleName(),
+                    e.getStatusCode(),
+                    e.getHeaders(),
+                    e.getResponseBodyAsString(),
+                    e);
             throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
         } catch (Exception e) {
-            log.error("AI 서버 호출 실패", e);
+            log.error("AI 서버 호출 실패: type={}", e.getClass().getName(), e);
             throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
         }
     }
@@ -65,6 +76,6 @@ public class AiServerClient {
     private record AiServerRequest(
             @JsonProperty("event_id") Long eventId,
             @JsonProperty("window_months") Integer windowMonths,
-            @JsonProperty("region_codes") List<String> regionCodes
-    ) {}
+            @JsonProperty("region_codes") List<String> regionCodes) {
+    }
 }
