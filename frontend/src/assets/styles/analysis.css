@@ -22,12 +22,31 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .ui > * { pointer-events: auto; }
 
 /* HEADER */
-.hdr { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: rgba(10,10,10,.93); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+.hdr { position: absolute; top: 0; left: 0; right: 0; background: rgba(10,10,10,.93); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); display: flex; align-items: center; padding: 8px 16px; gap: 12px; }
 .logo-sq { width: 28px; height: 28px; border: 1.5px solid rgba(255,255,255,.4); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
 .logo-nm { font-size: 12px; font-weight: 600; }
 .logo-sb { font-size: 9px; color: var(--w3); letter-spacing: .5px; }
 .hdiv { width: 1px; height: 16px; background: var(--border2); }
-.evs { display: flex; gap: 2px; flex: 1; overflow-x: auto; }
+.hdiv-sm { width: 1px; height: 12px; background: var(--border2); }
+.wsel { display: flex; align-items: center; gap: 3px; }
+.wsel-lbl { font-size: 9px; color: var(--w3); margin-right: 2px; letter-spacing: .4px; }
+.wb { padding: 3px 7px; border: 1px solid var(--border2); border-radius: 3px; background: transparent; color: var(--w3); font-size: 9.5px; font-weight: 500; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+.wb:hover { color: var(--w1); border-color: rgba(255,255,255,.28); }
+.wb.on { background: var(--w1); color: #0a0a0a; border-color: var(--w1); }
+.tp-empty { font-size: 10px; color: var(--w3); padding: 8px 0; text-align: center; }
+/* EventSelector */
+.evc { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ef  { display: flex; align-items: center; gap: 5px; }
+.ef-lbl { font-size: 9px; color: var(--w3); letter-spacing: .5px; flex-shrink: 0; }
+.ef-dash { font-size: 9px; color: var(--w3); }
+.efy-sel { background: transparent; border: 1px solid var(--border2); border-radius: 3px; color: var(--w2); font-size: 9px; padding: 2px 5px; font-family: 'Inter', sans-serif; cursor: pointer; appearance: none; -webkit-appearance: none; }
+.efy-sel:focus { outline: none; border-color: rgba(255,255,255,.3); }
+.efy-sel option { background: #0d0d0d; color: rgba(255,255,255,.85); }
+.efy { display: flex; gap: 3px; }
+.eyt { padding: 2px 8px; border: 1px solid var(--border2); border-radius: 3px; background: transparent; color: var(--w3); font-size: 9px; font-weight: 500; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+.eyt:hover { color: var(--w1); border-color: rgba(255,255,255,.28); }
+.eyt.on { background: rgba(255,255,255,.1); color: var(--w1); border-color: rgba(255,255,255,.3); }
+.evs { display: flex; gap: 2px; overflow-x: auto; }
 .evb { padding: 4px 10px; border: 1px solid var(--border2); border-radius: 4px; background: transparent; color: var(--w3); font-size: 10px; font-weight: 500; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; white-space: nowrap; flex-shrink: 0; }
 .evb:hover { color: var(--w1); border-color: rgba(255,255,255,.28); }
 .evb.on { background: var(--w1); color: #0a0a0a; border-color: var(--w1); }
@@ -41,7 +60,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 @keyframes lp { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 
 /* RIGHT PANEL */
-.rp { position: absolute; top: 62px; right: 14px; display: flex; flex-direction: column; gap: 6px; width: 170px; }
+.rp { position: absolute; top: 106px; right: 14px; display: flex; flex-direction: column; gap: 6px; width: 170px; }
 .mc { background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; backdrop-filter: blur(20px); }
 .mc-l { font-size: 8px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--w3); margin-bottom: 4px; }
 .mc-v { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1; }
