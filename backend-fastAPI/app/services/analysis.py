@@ -1,6 +1,7 @@
 from math import sqrt
 from typing import Any, Dict
 
+from app.config_regions import VISIBLE_ANALYSIS_REGION_CODES
 from app.services.duckdb_service import SUMMARY_TABLE, get_connection, init_schema
 
 
@@ -69,14 +70,15 @@ def _monthly_index_rows(
     con: Any,
     start_ym: str,
     end_ym: str,
-    region_codes: list[str] | None,
+    region_codes: list[str],
 ) -> list[dict[str, Any]]:
-    region_filter = ""
+    if not region_codes:
+        return []
+
     params: list[Any] = [start_ym, end_ym]
-    if region_codes:
-        placeholders = ", ".join(["?"] * len(region_codes))
-        region_filter = f"AND dong_code IN ({placeholders})"
-        params.extend(region_codes)
+    placeholders = ", ".join(["?"] * len(region_codes))
+    region_filter = f"AND dong_code IN ({placeholders})"
+    params.extend(region_codes)
 
     cursor = con.execute(
         f"""
@@ -443,7 +445,9 @@ def run_event_window_analysis(payload: Dict[str, Any]) -> Dict[str, Any]:
     threshold_pct = 5.0
     data_range = _available_summary_range(con)
 
-    rows = _monthly_index_rows(con, calc_start_ym, end_ym, region_codes)
+    requested_codes = set(region_codes) if region_codes else VISIBLE_ANALYSIS_REGION_CODES
+    analysis_region_codes = sorted(requested_codes & VISIBLE_ANALYSIS_REGION_CODES)
+    rows = _monthly_index_rows(con, calc_start_ym, end_ym, analysis_region_codes)
     grouped_rows = _group_by_region(rows)
 
     regions = []

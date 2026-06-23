@@ -56,6 +56,7 @@ export const LAWD_CD_TO_NAME: Record<string, string> = {
   '41591': '화성시만세구',
   '41593': '화성시효행구',
   '41595': '화성시병점구',
+  '41597': '화성시동탄구',
 }
 
 // 역방향: 행정구역명 → LAWD_CD

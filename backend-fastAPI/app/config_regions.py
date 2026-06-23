@@ -105,6 +105,20 @@ METRO_CITIES = GYEONGGI_COLLECTION_DISTRICTS
 
 ALL_REGIONS = {**SEOUL_DISTRICTS, **GYEONGGI_COLLECTION_DISTRICTS}
 
+# Only regions with a renderable map polygon participate in event analysis.
+# Raw and preprocessed data for other regions remain available for later use.
+VISIBLE_ANALYSIS_REGION_CODES = set(SEOUL_DISTRICTS.values()) | {
+    "41111", "41113", "41115", "41117",
+    "41131", "41133", "41135",
+    "41171", "41173",
+    "41192", "41194", "41196",
+    "41271",
+    "41281", "41285", "41287", "41290",
+    "41410", "41430",
+    "41461", "41463", "41465",
+    "41570",
+}
+
 
 def get_region_codes() -> list[str]:
     """국토부 API에 요청할 5자리 LAWD_CD를 중복 없이 정렬해 반환합니다."""

@@ -26,11 +26,13 @@ const targetGyeonggiCodes = new Set([
   '41131', '41133', '41135', // 성남시
   '41171', '41173', // 안양시
   '41192', '41194', '41196', // 부천시
-  '41271', '41273', // 안산시
+  '41271', // 안산시 상록구
+  '41290', // 과천시
   '41281', '41285', '41287', // 고양시
+  '41410', // 군포시
+  '41430', // 의왕시
   '41461', '41463', '41465', // 용인시
   '41570', // 김포시
-  '41591', '41593', '41595', // 화성시
 ])
 
 function readJson(filePath) {
@@ -93,9 +95,18 @@ function transformCoordinates(coordinates) {
   return coordinates.map(transformCoordinates)
 }
 
+function hasCoordinates(coordinates) {
+  if (!Array.isArray(coordinates)) return false
+  if (typeof coordinates[0] === 'number') return true
+  return coordinates.some(hasCoordinates)
+}
+
 const source = readJson(sourcePath)
 const features = source.features
-  .filter(feature => targetGyeonggiCodes.has(feature.properties.SIG_CD))
+  .filter(feature =>
+    targetGyeonggiCodes.has(feature.properties.SIG_CD)
+    && hasCoordinates(feature.geometry.coordinates),
+  )
   .map(feature => ({
     type: 'Feature',
     properties: {
