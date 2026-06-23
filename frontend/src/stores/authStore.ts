@@ -1,0 +1,50 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { login as apiLogin, logout as apiLogout, getMember, parseUserId, register as apiRegister } from '@/api/authApi'
+
+export const useAuthStore = defineStore('auth', () => {
+  const accessToken  = ref<string | null>(localStorage.getItem('access_token'))
+  const refreshToken = ref<string | null>(localStorage.getItem('refresh_token'))
+  const nickname     = ref<string | null>(localStorage.getItem('nickname'))
+
+  const isLoggedIn = computed(() => !!accessToken.value)
+
+  function _persist(at: string, rt: string, nick: string) {
+    accessToken.value  = at
+    refreshToken.value = rt
+    nickname.value     = nick
+    localStorage.setItem('access_token',  at)
+    localStorage.setItem('refresh_token', rt)
+    localStorage.setItem('nickname',      nick)
+  }
+
+  function _clear() {
+    accessToken.value  = null
+    refreshToken.value = null
+    nickname.value     = null
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('nickname')
+  }
+
+  async function login(email: string, password: string) {
+    const tokens = await apiLogin(email, password)
+    const userId = parseUserId(tokens.accessToken)
+    const member = userId ? await getMember(userId, tokens.accessToken) : null
+    _persist(tokens.accessToken, tokens.refreshToken, member?.nickname ?? email)
+  }
+
+  async function register(email: string, password: string, nick: string, birthDate: string) {
+    const tokens = await apiRegister(email, password, nick, birthDate)
+    _persist(tokens.accessToken, tokens.refreshToken, nick)
+  }
+
+  async function logout() {
+    if (accessToken.value) {
+      try { await apiLogout(accessToken.value) } catch { /* ignore */ }
+    }
+    _clear()
+  }
+
+  return { accessToken, nickname, isLoggedIn, login, register, logout }
+})

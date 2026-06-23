@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { MapEvent } from '@/types/analysis'
 import { useAnalysisStore } from '@/stores/analysisStore'
 import { useReportStore } from '@/stores/reportStore'
@@ -11,7 +12,8 @@ import WindowSelector from '@/components/analysis/WindowSelector.vue'
 import ReportPreview from '@/components/report/ReportPreview.vue'
 import '@/assets/styles/analysis.css'
 
-const store = useAnalysisStore()
+const router      = useRouter()
+const store       = useAnalysisStore()
 const reportStore = useReportStore()
 
 // ── 타임라인 월 목록 (window_months 기반 동적 생성) ─────────────────────────
@@ -89,7 +91,7 @@ onMounted(async () => {
 <template>
   <!-- 지도 초기화 로딩 -->
   <div id="loading">
-    <div class="ld-title">SHOCKPROP</div>
+    <div class="ld-title">ESTATEFLOW</div>
     <div class="ld-bar"><div class="ld-fill" id="ldFill" style="width:0%"></div></div>
     <div class="ld-txt" id="ldTxt">행정구역 데이터 로딩 중...</div>
   </div>
@@ -105,9 +107,9 @@ onMounted(async () => {
 
   <div class="ui">
     <div class="hdr">
-      <div class="logo-sq">SP</div>
+      <div class="logo-sq">EF</div>
       <div>
-        <div class="logo-nm">ShockProp</div>
+        <div class="logo-nm">EstateFlow</div>
         <div class="logo-sb">부동산 정책 충격 전파 분석</div>
       </div>
       <div class="hdiv"></div>
@@ -132,6 +134,7 @@ onMounted(async () => {
         <div class="ltog" :class="{ on: showLabels }" @click="showLabels = !showLabels">
           <div class="tog-dot"></div>지역 라벨
         </div>
+        <button class="search-btn" @click="router.push('/search')">거래 검색</button>
         <div class="live"><div class="ldot"></div>LIVE</div>
       </div>
     </div>
