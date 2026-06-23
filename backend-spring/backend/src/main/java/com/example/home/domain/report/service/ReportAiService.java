@@ -20,15 +20,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReportAiService {
 
+    private static final int RESPONSE_LOG_LIMIT = 1_000;
     private static final Pattern YEAR_MONTH = Pattern.compile("(?<!\\d)(\\d{4})(\\d{2})(?!\\d)");
     private static final RestClient GMS_REST_CLIENT = createGmsRestClient();
 
@@ -70,22 +73,58 @@ public class ReportAiService {
         log.info("GMS request: url={}, model='{}' ({} chars), bodySize={}",
                 completionsUrl(), model, model.length(), requestJson.length());
 
-        String responseBody = GMS_REST_CLIENT
-                .post()
-                .uri(completionsUrl())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-                .header(HttpHeaders.ACCEPT, MediaType.ALL_VALUE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestJson)
-                .retrieve()
-                .body(String.class);
-        JsonNode response = objectMapper.readTree(responseBody);
+        ResponseEntity<String> responseEntity;
+        try {
+            responseEntity = GMS_REST_CLIENT
+                    .post()
+                    .uri(completionsUrl())
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                    .header(HttpHeaders.ACCEPT, MediaType.ALL_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestJson)
+                    .retrieve()
+                    .toEntity(String.class);
+        } catch (RestClientResponseException e) {
+            log.warn("GMS API error: status={}, requestId={}, body={}",
+                    e.getStatusCode(), requestId(e.getResponseHeaders()), truncate(e.getResponseBodyAsString()), e);
+            throw e;
+        }
+
+        String responseBody = responseEntity.getBody();
+        JsonNode response;
+        try {
+            response = objectMapper.readTree(responseBody);
+        } catch (JsonProcessingException e) {
+            log.warn("GMS response JSON parsing failed: status={}, requestId={}, body={}",
+                    responseEntity.getStatusCode(), requestId(responseEntity.getHeaders()), truncate(responseBody), e);
+            throw e;
+        }
 
         JsonNode content = response == null ? null : response.path("choices").path(0).path("message").path("content");
         if (content == null || content.isMissingNode() || content.asText().isBlank()) {
+            log.warn("GMS response has no usable choice: status={}, requestId={}, body={}",
+                    responseEntity.getStatusCode(), requestId(responseEntity.getHeaders()), truncate(responseBody));
             throw new IllegalStateException("GMS 응답에 choices[0].message.content가 없습니다.");
         }
         return content.asText();
+    }
+
+    private String requestId(HttpHeaders headers) {
+        String requestId = headers.getFirst("x-request-id");
+        if (requestId == null || requestId.isBlank()) {
+            requestId = headers.getFirst("request-id");
+        }
+        return requestId == null || requestId.isBlank() ? "-" : requestId;
+    }
+
+    private String truncate(String value) {
+        if (value == null || value.isBlank()) {
+            return "<empty>";
+        }
+        String normalized = value.replaceAll("[\\r\\n]+", " ");
+        return normalized.length() <= RESPONSE_LOG_LIMIT
+                ? normalized
+                : normalized.substring(0, RESPONSE_LOG_LIMIT) + "...<truncated>";
     }
 
     private String completionsUrl() {
