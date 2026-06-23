@@ -746,3 +746,21 @@ DuckDB에서 너무 많은 레코드를 쿼리하는 중일 수 있습니다. `l
 
 - MOLIT 실거래가 API: 공공 데이터
 - JUSO API: 행정안전부 공공 데이터
+
+## Event Window Analysis Update
+
+`POST /analysis/event-window` now returns additional G4-oriented metrics while keeping the existing event-month indexed baseline.
+
+- `monthly[].price_yoy_pct`: same-month previous-year price change
+- `monthly[].peer_avg_price_change_pct`: equal-weight average price change across requested regions for the same relative month
+- `monthly[].excess_price_change_pct`: regional price change minus the peer average
+- `window_summary.final_price_yoy_pct`: final-window YoY price change
+- `window_summary.final_excess_price_change_pct`: final-window excess price change versus peer average
+- `window_summary.reaction_direction`: first strong reaction direction
+- `window_summary.reaction_role`: `leader`, `follower`, `synchronous`, or `no_clear_reaction`
+- `propagation_candidates`: lagged same-direction propagation candidates based on monthly price return correlation
+- `window_summary.warnings`: low-volume and fallback-baseline interpretation warnings
+
+Low-volume months remain in the monthly output, but they are excluded from YoY, peer-average, reaction timing, and propagation calculations.
+
+If a region does not have an exact `event_ym` row, the baseline falls back to the latest observed month on or before `event_ym`, and `baseline.baseline_source` records that choice.

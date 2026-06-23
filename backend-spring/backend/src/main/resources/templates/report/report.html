@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @page { size: A4; margin: 17mm 15mm 18mm; }
+    * { box-sizing: border-box; }
+    body { color: #172033; font-family: 'Noto Sans KR', sans-serif; font-size: 10pt; line-height: 1.65; }
+    h1, h2, h3, p { margin: 0; }
+    .header { border-bottom: 2px solid #1f5eff; padding-bottom: 12px; margin-bottom: 18px; }
+    .eyebrow { color: #1f5eff; font-size: 8.5pt; font-weight: bold; letter-spacing: .08em; }
+    h1 { font-size: 22pt; line-height: 1.35; margin-top: 4px; }
+    .created-at { color: #637083; font-size: 8.5pt; margin-top: 5px; }
+    .kpis { border-collapse: separate; border-spacing: 8px 0; margin: 0 -8px 18px; width: calc(100% + 16px); }
+    .kpis td { background: #f3f6fb; border-radius: 6px; padding: 11px 12px; vertical-align: top; width: 25%; }
+    .kpi-label { color: #637083; font-size: 8pt; }
+    .kpi-value { color: #172033; font-size: 17pt; font-weight: bold; line-height: 1.3; margin-top: 2px; }
+    .positive { color: #1677d2; }
+    .negative { color: #d64545; }
+    .section { margin-top: 20px; }
+    h2 { border-left: 4px solid #1f5eff; font-size: 14pt; line-height: 1.35; padding-left: 8px; margin-bottom: 9px; }
+    h3 { color: #263b63; font-size: 11pt; margin-bottom: 4px; }
+    .summary { background: #f7f9fd; border: 1px solid #dfe7f5; border-radius: 6px; padding: 13px 15px; }
+    .content-block { border-bottom: 1px solid #e7ecf3; padding: 0 0 12px; margin: 0 0 12px; }
+    .regional { break-inside: avoid; border: 1px solid #dfe7f5; border-radius: 6px; margin-bottom: 12px; padding: 13px 15px; }
+    .reason { color: #637083; font-size: 9pt; margin-bottom: 8px; }
+    .label { color: #263b63; font-weight: bold; }
+    ul { margin: 6px 0 0; padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    .cautions { background: #fff8e8; border-left: 4px solid #e7a924; padding: 10px 14px; }
+    .footer { color: #8a95a5; font-size: 8pt; margin-top: 22px; text-align: right; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <p class="eyebrow">ESTATEFLOW · ANALYSIS REPORT</p>
+    <h1 th:text="${report.title}">부동산 분석 리포트</h1>
+    <p class="created-at" th:text="|생성 시각: ${report.createdAt}|">생성 시각</p>
+  </header>
+
+  <table class="kpis" role="presentation"><tr>
+    <td><p class="kpi-label">분석 기간</p><p class="kpi-value" th:text="|${report.windowMonths}개월|">3개월</p></td>
+    <td><p class="kpi-label">분석 지역</p><p class="kpi-value" th:text="${report.regionCount}">0</p></td>
+    <td><p class="kpi-label">상승 지역</p><p class="kpi-value positive" th:text="${report.risingRegionCount}">0</p></td>
+    <td><p class="kpi-label">하락 지역</p><p class="kpi-value negative" th:text="${report.fallingRegionCount}">0</p></td>
+  </tr></table>
+
+  <section class="section">
+    <h2>핵심 요약</h2>
+    <p class="summary" th:text="${report.summary}">요약</p>
+  </section>
+
+  <section class="section" th:if="${!#lists.isEmpty(report.sections)}">
+    <h2>주요 분석</h2>
+    <article class="content-block" th:each="section : ${report.sections}">
+      <h3 th:if="${!#strings.isEmpty(section.title)}" th:text="${section.title}">제목</h3>
+      <p th:text="${section.content}">내용</p>
+    </article>
+  </section>
+
+  <section class="section" th:if="${!#lists.isEmpty(report.regionalTrends)}">
+    <h2>지역별 분석</h2>
+    <article class="regional" th:each="region : ${report.regionalTrends}">
+      <h3 th:text="${region.regionName}">지역명</h3>
+      <p class="reason" th:text="|선정 이유 · ${region.selectionReason}|">선정 이유</p>
+      <p th:text="${region.trend}">추세</p>
+      <p th:if="${!#strings.isEmpty(region.comparativeInterpretation)}"><span class="label">비교 해석 · </span><span th:text="${region.comparativeInterpretation}">비교 해석</span></p>
+      <ul th:if="${!#lists.isEmpty(region.evidence)}"><li th:each="evidence : ${region.evidence}" th:text="${evidence}">근거</li></ul>
+    </article>
+  </section>
+
+  <section class="section" th:if="${!#lists.isEmpty(report.cautions)}">
+    <h2>해석 시 유의사항</h2>
+    <div class="cautions"><ul><li th:each="caution : ${report.cautions}" th:text="${caution}">주의사항</li></ul></div>
+  </section>
+  <p class="footer">EstateFlow Report</p>
+</body>
+</html>
