@@ -9,7 +9,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@OpenAPIDefinition(info = @Info(title = "EstateFlow API", description = "부동산 정책 충격 전파 분석 시스템 API", version = "v1"))
+@OpenAPIDefinition(info = @Info(
+        title = "EstateFlow API",
+        description = "부동산 정책 충격 전파 분석 시스템 API",
+        version = "v1"
+))
 @SecurityScheme(
         name = "bearerAuth",
         type = SecuritySchemeType.HTTP,
@@ -49,7 +53,7 @@ public class SwaggerConfig {
                 .pathsToMatch("/api/notices/**")
                 .build();
     }
-    
+
     @Bean
     GroupedOpenApi analysisOpenAPI() {
         return GroupedOpenApi.builder()
@@ -63,6 +67,14 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("Report 관련 API")
                 .pathsToMatch("/api/reports/**")
+                .build();
+    }
+
+    @Bean
+    GroupedOpenApi scenarioOpenAPI() {
+        return GroupedOpenApi.builder()
+                .group("Scenario 관련 API")
+                .pathsToMatch("/api/scenarios/**")
                 .build();
     }
 }

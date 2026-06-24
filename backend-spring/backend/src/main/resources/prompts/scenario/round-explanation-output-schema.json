@@ -1,0 +1,19 @@
+{
+  "summary": "string",
+  "regions": [
+    {
+      "region_code": "string",
+      "region_name": "string",
+      "dominant_stance": "string",
+      "region_explanation": "string",
+      "personas": [
+        {
+          "persona_type": "string",
+          "persona_label": "string",
+          "dominant_stance": "string",
+          "explanation": "string"
+        }
+      ]
+    }
+  ]
+}
