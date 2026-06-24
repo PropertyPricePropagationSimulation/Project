@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 public record RegisterRequest(
         @Email @NotBlank String email,
-        @NotBlank @Size(min = 8, max = 100) String password,
+        @NotBlank @Size(min = 8, max = 20) String password,
         @NotBlank @Size(min = 2, max = 20) String nickname,
         @NotNull @Past LocalDate birthDate
 ) {
