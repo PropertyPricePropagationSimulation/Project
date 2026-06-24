@@ -47,8 +47,12 @@ async function saveEdit() {
 
 async function handleDelete() {
   if (!confirm('공지사항을 삭제할까요?')) return
-  await deleteNotice(noticeId)
-  router.push('/notices')
+  try {
+    await deleteNotice(noticeId)
+    router.push('/notices')
+  } catch {
+    alert('삭제에 실패했습니다. 다시 시도해주세요.')
+  }
 }
 
 function fmtDate(s: string) { return s?.slice(0, 10) ?? '' }

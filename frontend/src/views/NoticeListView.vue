@@ -37,8 +37,12 @@ function goPage(p: number) {
 async function handleDelete(e: Event, id: number) {
   e.stopPropagation()
   if (!confirm('공지사항을 삭제할까요?')) return
-  await deleteNotice(id)
-  await load()
+  try {
+    await deleteNotice(id)
+    await load()
+  } catch {
+    alert('삭제에 실패했습니다. 다시 시도해주세요.')
+  }
 }
 
 onMounted(load)

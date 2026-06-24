@@ -17,10 +17,11 @@ const PAGE_SIZE  = 10
 const loading    = ref(false)
 
 const myId = () => {
+  const token = authStore.accessToken
+  if (!token) return null
   try {
-    const token = authStore.accessToken ?? ''
-    if (!token) return null
-    return Number(JSON.parse(atob(token.split('.')[1] ?? '')).sub)
+    const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    return Number(JSON.parse(atob(b64)).sub)
   } catch { return null }
 }
 

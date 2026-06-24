@@ -63,8 +63,12 @@ async function saveEditComment(commentId: number) {
 
 async function handleDeleteComment(commentId: number) {
   if (!confirm('댓글을 삭제할까요?')) return
-  await deleteComment(qnaId, commentId)
-  comments.value = await getComments(qnaId)
+  try {
+    await deleteComment(qnaId, commentId)
+    comments.value = await getComments(qnaId)
+  } catch {
+    alert('삭제에 실패했습니다. 다시 시도해주세요.')
+  }
 }
 
 function startEdit() {
@@ -88,8 +92,12 @@ async function saveEdit() {
 
 async function handleDeleteQna() {
   if (!confirm('Q&A를 삭제할까요?')) return
-  await deleteQna(qnaId)
-  router.push('/qna')
+  try {
+    await deleteQna(qnaId)
+    router.push('/qna')
+  } catch {
+    alert('삭제에 실패했습니다. 다시 시도해주세요.')
+  }
 }
 
 onMounted(load)
@@ -99,7 +107,10 @@ function fmtDate(s: string) { return s?.slice(0, 10) ?? '' }
 const myId = () => {
   const token = authStore.accessToken
   if (!token) return null
-  try { return Number(JSON.parse(atob(token.split('.')[1] ?? '')).sub) } catch { return null }
+  try {
+    const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    return Number(JSON.parse(atob(b64)).sub)
+  } catch { return null }
 }
 
 async function toggleAnswered() {
@@ -153,8 +164,8 @@ async function toggleAnswered() {
                     </button>
                     <template v-if="myId() === qna.writerId">
                       <button class="pv-edit-btn" @click="startEdit">수정</button>
-                      <button class="pv-del-btn" @click="handleDeleteQna">삭제</button>
                     </template>
+                    <button v-if="myId() === qna.writerId || authStore.isAdmin" class="pv-del-btn" @click="handleDeleteQna">삭제</button>
                   </div>
                 </div>
               </div>
@@ -190,8 +201,8 @@ async function toggleAnswered() {
                     <span class="pv-cmt-date">{{ fmtDate(c.createdAt) }}</span>
                     <template v-if="myId() === c.writerId">
                       <button class="pv-cmt-edit-btn" @click="startEditComment(c)">수정</button>
-                      <button class="pv-cmt-del" @click="handleDeleteComment(c.commentId)">삭제</button>
                     </template>
+                    <button v-if="myId() === c.writerId || authStore.isAdmin" class="pv-cmt-del" @click="handleDeleteComment(c.commentId)">삭제</button>
                   </div>
                   <p class="pv-cmt-body">{{ c.content }}</p>
                 </template>
