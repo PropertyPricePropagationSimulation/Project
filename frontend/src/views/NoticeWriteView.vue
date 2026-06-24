@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import AppFooter from '@/components/common/AppFooter.vue'
-import { createQna } from '@/api/qnaApi'
+import { createNotice } from '@/api/noticeApi'
 import { parseApiError } from '@/api/errorUtils'
 
 const router  = useRouter()
@@ -20,8 +20,8 @@ async function submit() {
   submitting.value = true
   error.value = ''
   try {
-    await createQna(title.value.trim(), content.value.trim())
-    router.push('/qna')
+    await createNotice(title.value.trim(), content.value.trim())
+    router.push('/notices')
   } catch (e) {
     error.value = parseApiError(e, '등록 중 오류가 발생했습니다. 다시 시도해주세요.')
   } finally {
@@ -35,22 +35,22 @@ async function submit() {
     <AppHeader />
     <main class="pv-main">
       <div class="pv-inner">
-        <button class="pv-back" @click="router.push('/qna')">← Q&A 목록</button>
-        <h1 class="pv-title">질문 작성</h1>
+        <button class="pv-back" @click="router.push('/notices')">← 공지사항 목록</button>
+        <h1 class="pv-title">공지사항 작성</h1>
 
         <div class="pv-form">
           <label class="pv-label">제목</label>
           <input v-model="title" type="text" class="pv-input" placeholder="제목을 입력하세요" maxlength="200" />
 
           <label class="pv-label">내용</label>
-          <textarea v-model="content" class="pv-ta" placeholder="질문 내용을 상세히 작성해주세요" rows="12" />
+          <textarea v-model="content" class="pv-ta" placeholder="공지 내용을 입력하세요" rows="12" />
 
           <p v-if="error" class="pv-error">{{ error }}</p>
 
           <div class="pv-actions">
-            <button class="pv-cancel" @click="router.push('/qna')">취소</button>
+            <button class="pv-cancel" @click="router.push('/notices')">취소</button>
             <button class="pv-submit" :disabled="submitting" @click="submit">
-              {{ submitting ? '등록 중...' : '질문 등록' }}
+              {{ submitting ? '등록 중...' : '공지 등록' }}
             </button>
           </div>
         </div>

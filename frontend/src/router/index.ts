@@ -5,6 +5,7 @@ import AnalysisView     from '@/views/AnalysisView.vue'
 import SearchView       from '@/views/SearchView.vue'
 import NoticeListView   from '@/views/NoticeListView.vue'
 import NoticeDetailView from '@/views/NoticeDetailView.vue'
+import NoticeWriteView  from '@/views/NoticeWriteView.vue'
 import QnaListView      from '@/views/QnaListView.vue'
 import QnaDetailView    from '@/views/QnaDetailView.vue'
 import QnaWriteView     from '@/views/QnaWriteView.vue'
@@ -18,8 +19,9 @@ const router = createRouter({
     { path: '/',              name: 'home',          component: HomeView },
     { path: '/analysis',      name: 'analysis',      component: AnalysisView },
     { path: '/search',        name: 'search',        component: SearchView },
-    { path: '/notices',       name: 'noticeList',    component: NoticeListView },
-    { path: '/notices/:id',   name: 'noticeDetail',  component: NoticeDetailView },
+    { path: '/notices',        name: 'noticeList',   component: NoticeListView },
+    { path: '/notices/write',  name: 'noticeWrite',  component: NoticeWriteView, meta: { requiresAuth: true } },
+    { path: '/notices/:id',    name: 'noticeDetail', component: NoticeDetailView },
     { path: '/qna',           name: 'qnaList',       component: QnaListView },
     { path: '/qna/write',     name: 'qnaWrite',      component: QnaWriteView, meta: { requiresAuth: true } },
     { path: '/qna/:id',       name: 'qnaDetail',     component: QnaDetailView },

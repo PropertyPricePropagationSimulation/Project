@@ -2,10 +2,13 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
-import { getNotices, type Notice } from '@/api/noticeApi'
+import AppFooter from '@/components/common/AppFooter.vue'
+import { useAuthStore } from '@/stores/authStore'
+import { getNotices, deleteNotice, type Notice } from '@/api/noticeApi'
 
-const router  = useRouter()
-const route   = useRoute()
+const router    = useRouter()
+const route     = useRoute()
+const authStore = useAuthStore()
 
 const notices    = ref<Notice[]>([])
 const totalCount = ref(0)
@@ -29,6 +32,13 @@ const totalPages = () => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE))
 function goPage(p: number) {
   page.value = p
   router.push({ query: { page: p } })
+}
+
+async function handleDelete(e: Event, id: number) {
+  e.stopPropagation()
+  if (!confirm('공지사항을 삭제할까요?')) return
+  await deleteNotice(id)
+  await load()
 }
 
 onMounted(load)
@@ -56,6 +66,9 @@ function fmtDate(s: string) {
         <div class="nv-top">
           <h1 class="nv-title">공지사항</h1>
           <span class="nv-count">총 {{ totalCount }}건</span>
+          <button v-if="authStore.isAdmin" class="nv-write-btn" @click="router.push('/notices/write')">
+            + 공지 작성
+          </button>
         </div>
 
         <div v-if="loading" class="nv-loading">
@@ -84,7 +97,10 @@ function fmtDate(s: string) {
                 </div>
               </div>
             </div>
-            <svg class="nv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <div class="nv-item-right">
+              <svg class="nv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <button v-if="authStore.isAdmin" class="nv-del-btn" @click="handleDelete($event, n.noticeId)">삭제</button>
+            </div>
           </li>
         </ul>
 
@@ -100,17 +116,20 @@ function fmtDate(s: string) {
 
       </div>
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <style scoped>
-.nv { min-height: 100vh; background: #f8fafc; }
-.nv-main { padding: 40px 24px; }
+.nv { min-height: 100vh; display: flex; flex-direction: column; background: #f8fafc; }
+.nv-main { flex: 1; padding: 40px 24px; }
 .nv-inner { max-width: 900px; margin: 0 auto; }
 
-.nv-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
+.nv-top { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
 .nv-title { font-size: 22px; font-weight: 700; color: #1e293b; }
 .nv-count { font-size: 13px; color: #94a3b8; }
+.nv-write-btn { margin-left: auto; padding: 8px 16px; background: #1e293b; color: #fff; border: none; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .12s; }
+.nv-write-btn:hover { background: #334155; }
 
 /* 로딩 스켈레톤 */
 .nv-loading { display: flex; flex-direction: column; gap: 1px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
@@ -131,8 +150,10 @@ function fmtDate(s: string) {
 .nv-writer { font-size: 12px; color: #94a3b8; }
 .nv-dot { font-size: 12px; color: #cbd5e1; }
 .nv-date { font-size: 12px; color: #94a3b8; }
-.nv-arrow { width: 16px; height: 16px; color: #cbd5e1; flex-shrink: 0; transition: color .12s; }
+.nv-item-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.nv-arrow { width: 16px; height: 16px; color: #cbd5e1; transition: color .12s; }
 .nv-item:hover .nv-arrow { color: #94a3b8; }
+.nv-del-btn { padding: 3px 10px; border: 1px solid #fca5a5; background: none; color: #ef4444; border-radius: 4px; font-size: 11px; cursor: pointer; }
 
 /* 비어있음 */
 .nv-empty { padding: 60px 20px; text-align: center; }

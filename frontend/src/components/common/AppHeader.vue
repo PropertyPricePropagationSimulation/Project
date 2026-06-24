@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { computed } from 'vue'
 
 const router    = useRouter()
 const authStore = useAuthStore()
@@ -9,6 +10,12 @@ async function handleLogout() {
   await authStore.logout()
   router.push('/')
 }
+
+const displayName = computed(() =>
+  authStore.isAdmin
+    ? `${authStore.nickname} (관리자)`
+    : authStore.nickname
+)
 </script>
 
 <template>
@@ -28,7 +35,9 @@ async function handleLogout() {
 
       <div class="ah-auth">
         <template v-if="authStore.isLoggedIn">
-          <router-link to="/mypage" class="ah-nick">{{ authStore.nickname }}</router-link>
+          <router-link to="/mypage" class="ah-nick">
+            {{ displayName }}
+          </router-link>
           <button class="ah-btn-out" @click="handleLogout">로그아웃</button>
         </template>
         <template v-else>

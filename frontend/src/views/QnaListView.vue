@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
+import AppFooter from '@/components/common/AppFooter.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { getQnas, type Qna } from '@/api/qnaApi'
 
@@ -123,12 +124,13 @@ function fmtDate(s: string) {
 
       </div>
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <style scoped>
-.qv { min-height: 100vh; background: #f8fafc; }
-.qv-main { padding: 40px 24px; }
+.qv { min-height: 100vh; display: flex; flex-direction: column; background: #f8fafc; }
+.qv-main { flex: 1; padding: 40px 24px; }
 .qv-inner { max-width: 900px; margin: 0 auto; }
 
 .qv-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }

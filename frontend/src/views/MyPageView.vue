@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
+import AppFooter from '@/components/common/AppFooter.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useReportStore } from '@/stores/reportStore'
 import { getMember, parseUserId, updateMember, withdrawMember, type MemberResponse } from '@/api/authApi'
@@ -213,12 +214,13 @@ function signed(v: number | undefined) {
 
       </div>
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <style scoped>
-.mp { min-height: 100vh; background: #f8fafc; }
-.mp-main { padding: 40px 24px; }
+.mp { min-height: 100vh; display: flex; flex-direction: column; background: #f8fafc; }
+.mp-main { flex: 1; padding: 40px 24px; }
 .mp-inner { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
 
 .mp-section { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }

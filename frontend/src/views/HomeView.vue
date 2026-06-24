@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
+import AppFooter from '@/components/common/AppFooter.vue'
 import { getNotices } from '@/api/noticeApi'
 
 const router  = useRouter()
@@ -85,20 +86,14 @@ function fmtDate(s) { return s?.slice(0, 10) ?? '' }
       </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="h-footer">
-      <div class="h-sect-inner">
-        <span class="h-footer-logo">EstateFlow</span>
-        <span class="h-footer-copy">© 2025 EstateFlow. 부동산 정책 충격 전파 분석 시스템.</span>
-      </div>
-    </footer>
+    <AppFooter />
   </div>
 </template>
 
 <style scoped>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.home { min-height: 100vh; background: #f8fafc; color: #1e293b; font-family: 'Noto Sans KR', 'Inter', sans-serif; }
+.home { min-height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #1e293b; font-family: 'Noto Sans KR', 'Inter', sans-serif; }
 
 /* HERO */
 .h-hero { min-height: 480px; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); display: flex; align-items: center; padding: 80px 24px; gap: 40px; }
@@ -144,9 +139,4 @@ function fmtDate(s) { return s?.slice(0, 10) ?? '' }
 .h-notice-date { font-size: 12px; color: #94a3b8; }
 .h-notice-empty { text-align: center; color: #94a3b8; font-size: 14px; padding: 32px 0; }
 
-/* FOOTER */
-.h-footer { padding: 24px; background: #1e293b; }
-.h-footer .h-sect-inner { display: flex; align-items: center; gap: 16px; }
-.h-footer-logo { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.8); }
-.h-footer-copy { font-size: 12px; color: rgba(255,255,255,.4); }
 </style>

@@ -2,8 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
+import AppFooter from '@/components/common/AppFooter.vue'
 import { useAuthStore } from '@/stores/authStore'
-import { getQna, getComments, createComment, deleteComment, deleteQna, updateQna, updateAnswered, type Qna, type QnaComment } from '@/api/qnaApi'
+import { getQna, getComments, createComment, updateComment, deleteComment, deleteQna, updateQna, updateAnswered, type Qna, type QnaComment } from '@/api/qnaApi'
 
 const router    = useRouter()
 const route     = useRoute()
@@ -19,6 +20,9 @@ const editing    = ref(false)
 const editTitle   = ref('')
 const editContent = ref('')
 const saving     = ref(false)
+const editingCommentId      = ref<number | null>(null)
+const editingCommentContent = ref('')
+const savingComment         = ref(false)
 
 async function load() {
   try {
@@ -37,6 +41,23 @@ async function submitComment() {
     comments.value = await getComments(qnaId)
   } finally {
     submitting.value = false
+  }
+}
+
+function startEditComment(c: QnaComment) {
+  editingCommentId.value      = c.commentId
+  editingCommentContent.value = c.content
+}
+
+async function saveEditComment(commentId: number) {
+  if (!editingCommentContent.value.trim()) return
+  savingComment.value = true
+  try {
+    await updateComment(qnaId, commentId, editingCommentContent.value.trim())
+    comments.value = await getComments(qnaId)
+    editingCommentId.value = null
+  } finally {
+    savingComment.value = false
   }
 }
 
@@ -148,13 +169,32 @@ async function toggleAnswered() {
             <ul class="pv-cmt-list">
               <li v-if="comments.length === 0" class="pv-cmt-empty">첫 번째 댓글을 남겨보세요.</li>
               <li v-for="c in comments" :key="c.commentId" class="pv-cmt-item">
-                <div class="pv-cmt-top">
-                  <span class="pv-cmt-writer">{{ c.writer }}</span>
-                  <span class="pv-cmt-date">{{ fmtDate(c.createdAt) }}</span>
-                  <button v-if="myId() === c.writerId" class="pv-cmt-del"
-                          @click="handleDeleteComment(c.commentId)">삭제</button>
-                </div>
-                <p class="pv-cmt-body">{{ c.content }}</p>
+                <!-- 수정 모드 -->
+                <template v-if="editingCommentId === c.commentId">
+                  <div class="pv-cmt-top">
+                    <span class="pv-cmt-writer">{{ c.writer }}</span>
+                    <span class="pv-cmt-date">{{ fmtDate(c.createdAt) }}</span>
+                  </div>
+                  <textarea v-model="editingCommentContent" class="pv-cmt-ta pv-cmt-edit-ta" rows="3" />
+                  <div class="pv-cmt-edit-actions">
+                    <button class="pv-cmt-save" :disabled="savingComment" @click="saveEditComment(c.commentId)">
+                      {{ savingComment ? '저장 중...' : '저장' }}
+                    </button>
+                    <button class="pv-cmt-cancel" @click="editingCommentId = null">취소</button>
+                  </div>
+                </template>
+                <!-- 보기 모드 -->
+                <template v-else>
+                  <div class="pv-cmt-top">
+                    <span class="pv-cmt-writer">{{ c.writer }}</span>
+                    <span class="pv-cmt-date">{{ fmtDate(c.createdAt) }}</span>
+                    <template v-if="myId() === c.writerId">
+                      <button class="pv-cmt-edit-btn" @click="startEditComment(c)">수정</button>
+                      <button class="pv-cmt-del" @click="handleDeleteComment(c.commentId)">삭제</button>
+                    </template>
+                  </div>
+                  <p class="pv-cmt-body">{{ c.content }}</p>
+                </template>
               </li>
             </ul>
 
@@ -174,12 +214,13 @@ async function toggleAnswered() {
         <div v-else class="pv-loading">불러오는 중...</div>
       </div>
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <style scoped>
-.pv { min-height: 100vh; background: #f8fafc; }
-.pv-main { padding: 40px 24px; }
+.pv { min-height: 100vh; display: flex; flex-direction: column; background: #f8fafc; }
+.pv-main { flex: 1; padding: 40px 24px; }
 .pv-inner { max-width: 800px; margin: 0 auto; }
 .pv-back { background: none; border: 1px solid #e2e8f0; color: #64748b; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 24px; transition: all .12s; }
 .pv-back:hover { color: #1e293b; border-color: #cbd5e1; }
@@ -220,7 +261,14 @@ async function toggleAnswered() {
 .pv-cmt-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .pv-cmt-writer { font-size: 13px; font-weight: 600; color: #334155; }
 .pv-cmt-date { font-size: 12px; color: #94a3b8; }
-.pv-cmt-del { margin-left: auto; padding: 2px 8px; border: 1px solid #fca5a5; background: none; color: #ef4444; border-radius: 4px; font-size: 11px; cursor: pointer; }
+.pv-cmt-edit-btn { margin-left: auto; padding: 2px 8px; border: 1px solid #cbd5e1; background: none; color: #475569; border-radius: 4px; font-size: 11px; cursor: pointer; }
+.pv-cmt-edit-btn:hover { border-color: #94a3b8; color: #1e293b; }
+.pv-cmt-del { padding: 2px 8px; border: 1px solid #fca5a5; background: none; color: #ef4444; border-radius: 4px; font-size: 11px; cursor: pointer; }
+.pv-cmt-edit-ta { margin-top: 6px; }
+.pv-cmt-edit-actions { display: flex; gap: 6px; margin-top: 8px; }
+.pv-cmt-save { padding: 6px 16px; background: #1e293b; color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit; }
+.pv-cmt-save:disabled { opacity: .5; cursor: not-allowed; }
+.pv-cmt-cancel { padding: 6px 16px; background: none; border: 1px solid #e2e8f0; color: #64748b; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit; }
 .pv-cmt-body { font-size: 14px; color: #475569; line-height: 1.6; }
 .pv-cmt-form { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
 .pv-cmt-ta { width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 14px; color: #334155; resize: vertical; font-family: inherit; }
