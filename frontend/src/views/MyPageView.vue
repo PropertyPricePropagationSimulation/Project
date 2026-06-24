@@ -249,7 +249,7 @@ function signed(value: number | undefined) {
                 :disabled="scenarioStore.loading || !reportStore.getAnalysisCacheId()"
                 @click="handlePersonaAnalysis"
               >
-                {{ scenarioStore.loading ? '시나리오 생성 중...' : '페르소나 분석 보기' }}
+                {{ scenarioStore.loading ? '시장 참여자 관점 분석 준비 중...' : '시장 참여자 관점 분석' }}
               </button>
 
               <button class="mp-download-btn" :disabled="reportStore.loading" @click="reportStore.download()">
@@ -258,7 +258,7 @@ function signed(value: number | undefined) {
             </div>
 
             <p v-if="!reportStore.getAnalysisCacheId()" class="mp-scenario-hint">
-              이 리포트에는 analysis_cache_id가 없어 페르소나 분석과 바로 연결할 수 없습니다.
+              이 리포트에는 분석 연결 정보가 없어 시장 참여자 관점 분석을 바로 시작할 수 없습니다.
             </p>
             <p v-if="scenarioStore.error" class="mp-scenario-hint err">{{ scenarioStore.error }}</p>
           </div>

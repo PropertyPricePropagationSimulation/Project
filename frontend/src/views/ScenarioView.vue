@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import AppFooter from '@/components/common/AppFooter.vue'
 import { useScenarioStore } from '@/stores/scenarioStore'
+import type { ScenarioRoundExplanationRegion } from '@/types/scenario'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +17,21 @@ const rounds = computed(() => scenarioStore.rounds)
 const currentRound = computed(() =>
   rounds.value.find(round => round.relative_month === selectedRelativeMonth.value) ?? null,
 )
+const currentRoundExplanations = computed<Record<string, ScenarioRoundExplanationRegion>>(() =>
+  Object.fromEntries(
+    (scenarioStore.roundExplanation?.regions ?? []).map(region => [region.region_code, region]),
+  ),
+)
+
+function explanationForRegion(regionCode: string): ScenarioRoundExplanationRegion {
+  return currentRoundExplanations.value[regionCode] ?? {
+    region_code: regionCode,
+    region_name: '',
+    dominant_stance: '',
+    region_explanation: '',
+    personas: [],
+  }
+}
 
 const regionNames: Record<string, string> = {
   '11110': '서울 종로구', '11140': '서울 중구', '11170': '서울 용산구', '11200': '서울 성동구',
@@ -85,15 +101,14 @@ onMounted(loadScenario)
       <div class="scenario-inner">
         <section class="scenario-hero">
           <div>
-            <p class="scenario-kicker">PERSONA ANALYSIS</p>
-            <h1>리포트 기반 페르소나 시뮬레이션</h1>
+            <p class="scenario-kicker">MARKET PARTICIPANT ANALYSIS</p>
+            <h1>시장 참여자 관점 분석</h1>
             <p class="scenario-sub">
-              분석 결과를 바탕으로 반응성이 높은 지역을 추리고, 실수요자·투자자·갈아타기 수요층이
-              정책 시행 시점별로 어떻게 움직이는지 확인합니다.
+              분석 결과를 바탕으로 반응성이 높은 지역을 추리고, 실수요자·투자자·갈아타기 수요층 등
+              시장 참여자가 정책 시행 시점별로 어떻게 움직이는지 확인합니다.
             </p>
           </div>
 
-          <router-link to="/mypage" class="scenario-back">마이페이지로 돌아가기</router-link>
         </section>
 
         <div v-if="scenarioStore.loading" class="scenario-state">시나리오를 불러오는 중입니다...</div>
@@ -174,6 +189,11 @@ onMounted(loadScenario)
                 <p>{{ currentRound.narrative }}</p>
               </div>
 
+              <section v-if="scenarioStore.roundExplanation" class="ai-overview">
+                <span>AI 종합 요약</span>
+                <p>{{ scenarioStore.roundExplanation.summary }}</p>
+              </section>
+
               <div class="round-region-list">
                 <article v-for="region in currentRound.regions" :key="region.region_code" class="round-region-card">
                   <div class="round-region-head">
@@ -208,45 +228,30 @@ onMounted(loadScenario)
                       <p>평균 신호 {{ persona.average_signal?.toFixed(2) ?? '-' }}</p>
                     </article>
                   </div>
+
+                  <section v-if="currentRoundExplanations[region.region_code]" class="region-ai-analysis">
+                    <div class="region-ai-title">
+                      <span>AI 분석</span>
+                      <em>{{ explanationForRegion(region.region_code).dominant_stance }}</em>
+                    </div>
+                    <p class="region-text">{{ explanationForRegion(region.region_code).region_explanation }}</p>
+
+                    <div class="explanation-personas">
+                      <article
+                        v-for="persona in explanationForRegion(region.region_code).personas"
+                        :key="`${region.region_code}-${persona.persona_type}`"
+                        class="explanation-persona-card"
+                      >
+                        <strong>{{ persona.persona_label }} · {{ persona.dominant_stance }}</strong>
+                        <p>{{ persona.explanation }}</p>
+                      </article>
+                    </div>
+                  </section>
                 </article>
               </div>
             </div>
 
             <div v-if="scenarioStore.explanationError" class="scenario-state error">{{ scenarioStore.explanationError }}</div>
-
-            <section v-if="scenarioStore.roundExplanation" class="scenario-explanation">
-              <h3>AI 시점별 설명</h3>
-              <p class="explanation-summary">{{ scenarioStore.roundExplanation.summary }}</p>
-
-              <div class="explanation-region-list">
-                <article
-                  v-for="region in scenarioStore.roundExplanation.regions"
-                  :key="`${region.region_code}-${region.dominant_stance}`"
-                  class="explanation-region-card"
-                >
-                  <div class="round-region-head">
-                    <div>
-                      <strong>{{ regionDisplayName(region.region_code, region.region_name) }}</strong>
-                      <span>{{ region.region_code }}</span>
-                    </div>
-                    <em>{{ region.dominant_stance }}</em>
-                  </div>
-
-                  <p class="region-text">{{ region.region_explanation }}</p>
-
-                  <div class="explanation-personas">
-                    <article
-                      v-for="persona in region.personas"
-                      :key="`${region.region_code}-${persona.persona_type}`"
-                      class="explanation-persona-card"
-                    >
-                      <strong>{{ persona.persona_label }} · {{ persona.dominant_stance }}</strong>
-                      <p>{{ persona.explanation }}</p>
-                    </article>
-                  </div>
-                </article>
-              </div>
-            </section>
           </section>
         </template>
       </div>
@@ -274,7 +279,6 @@ onMounted(loadScenario)
 .scenario-kicker { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: #3b82f6; margin-bottom: 8px; }
 .scenario-hero h1 { font-size: 28px; color: #0f172a; margin-bottom: 10px; }
 .scenario-sub { font-size: 14px; line-height: 1.7; color: #64748b; max-width: 720px; }
-.scenario-back { text-decoration: none; font-size: 14px; color: #3b82f6; white-space: nowrap; }
 .scenario-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px; }
 .summary-card { background: #f8fafc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
 .summary-card span { font-size: 12px; color: #64748b; }
@@ -320,6 +324,10 @@ onMounted(loadScenario)
 .round-overview { border-radius: 12px; background: #f8fafc; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
 .round-label { display: inline-block; font-size: 12px; color: #3b82f6; margin-right: 10px; }
 .round-overview strong { color: #0f172a; }
+.ai-overview { border-left: 4px solid #3b82f6; background: #eff6ff; border-radius: 10px; padding: 14px 16px; }
+.ai-overview span,
+.region-ai-title span { color: #2563eb; font-size: 12px; font-weight: 700; }
+.ai-overview p { color: #334155; line-height: 1.7; margin-top: 6px; }
 .round-overview p,
 .region-text,
 .explanation-summary,
@@ -329,6 +337,9 @@ onMounted(loadScenario)
 .persona-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .persona-card,
 .explanation-persona-card { background: #f8fafc; border-radius: 12px; padding: 14px; }
+.region-ai-analysis { border-top: 1px solid #dbeafe; margin-top: 18px; padding-top: 16px; }
+.region-ai-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.region-ai-title em { color: #2563eb; font-size: 12px; font-style: normal; font-weight: 700; }
 .scenario-state { padding: 28px; background: #fff; border-radius: 16px; color: #64748b; }
 .scenario-state.error { color: #dc2626; }
 .scenario-explanation { margin-top: 22px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
