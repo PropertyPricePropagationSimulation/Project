@@ -73,10 +73,10 @@ public class DefaultQnaService implements QnaService {
     }
 
     @Override
-    public void delete(Long id, Long userId) {
+    public void delete(Long id, Long userId, boolean isAdmin) {
         Qna qna = qnaRepository.findById(id);
         if (qna == null) throw new BusinessException(ErrorCode.QNA_NOT_FOUND);
-        if (!qna.getWriterId().equals(userId)) throw new BusinessException(ErrorCode.FORBIDDEN_ERROR);
+        if (!isAdmin && !qna.getWriterId().equals(userId)) throw new BusinessException(ErrorCode.FORBIDDEN_ERROR);
         qnaRepository.deleteById(id);
     }
 }

@@ -12,5 +12,5 @@ public interface QnaCommentService {
 
     void update(Long commentId, Long userId, QnaCommentRequest request);
 
-    void delete(Long commentId, Long userId);
+    void delete(Long commentId, Long userId, boolean isAdmin);
 }

@@ -56,10 +56,10 @@ public class DefaultQnaCommentService implements QnaCommentService {
     }
 
     @Override
-    public void delete(Long commentId, Long userId) {
+    public void delete(Long commentId, Long userId, boolean isAdmin) {
         QnaComment comment = qnaCommentRepository.findById(commentId);
         if (comment == null) throw new BusinessException(ErrorCode.COMMENT_NOT_FOUND);
-        if (!comment.getWriterId().equals(userId)) throw new BusinessException(ErrorCode.FORBIDDEN_ERROR);
+        if (!isAdmin && !comment.getWriterId().equals(userId)) throw new BusinessException(ErrorCode.FORBIDDEN_ERROR);
         qnaCommentRepository.deleteById(commentId);
     }
 }
