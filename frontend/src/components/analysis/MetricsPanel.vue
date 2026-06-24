@@ -42,13 +42,26 @@ const top5Max = computed(() =>
 )
 
 // ── 사이즈 제어 ──────────────────────────────────────────────────────────────
-const size = ref(0)
+const size = ref<0 | 1 | 2>(0)
 
 const SIZES = [
   { rp: '170px', pad: '10px 12px', mcl: '8px',   mcv: '20px', mcs: '9px',   tpt: '8px',  tpnm: '10.5px', tppct: '9.5px',  legr: '9.5px'  },
   { rp: '212px', pad: '12px 14px', mcl: '9.5px', mcv: '24px', mcs: '10.5px',tpt: '9px',  tpnm: '12px',   tppct: '11px',   legr: '11px'   },
   { rp: '258px', pad: '14px 16px', mcl: '11px',  mcv: '29px', mcs: '12px',  tpt: '10px', tpnm: '13.5px', tppct: '12.5px', legr: '12.5px' },
-]
+] as const
+
+function decreaseSize() {
+  if (size.value > 0) {
+    size.value = (size.value - 1) as 0 | 1 | 2
+  }
+}
+
+function increaseSize() {
+  if (size.value < 2) {
+    size.value = (size.value + 1) as 0 | 1 | 2
+  }
+}
+
 const sz = computed(() => SIZES[size.value])
 </script>
 
@@ -109,8 +122,8 @@ const sz = computed(() => SIZES[size.value])
 
     <!-- 사이즈 컨트롤: 플로팅과 타임라인 사이 -->
     <div class="rp-szctrl">
-      <button class="rp-sz" :disabled="size === 0" @click="size--">−</button>
-      <button class="rp-sz" :disabled="size === 2" @click="size++">+</button>
+      <button class="rp-sz" :disabled="size === 0" @click="decreaseSize">−</button>
+      <button class="rp-sz" :disabled="size === 2" @click="increaseSize">+</button>
     </div>
 
   </div><!-- /.rp-wrap -->

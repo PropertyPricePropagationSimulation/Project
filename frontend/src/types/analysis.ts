@@ -48,6 +48,7 @@ export interface EventWindowRequest {
 // ── 분석 응답 ─────────────────────────────────────────────────────────────────
 export interface EventWindowResponse {
   status: string
+  analysis_cache_id?: number
   event: Record<string, unknown>
   analysis: Record<string, unknown>
   data_range: Record<string, unknown>

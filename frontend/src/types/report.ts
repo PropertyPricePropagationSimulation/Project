@@ -8,9 +8,18 @@ export interface ReportDocument {
   report_id: string
   status: 'COMPLETED' | 'DRAFT_FALLBACK'
   created_at: string
+  analysis_cache_id?: number
+  source?: ReportSource
   draft: ReportDraft
   ai_enhancement: ReportAiEnhancement | null
   analysis_result: ReportAnalysisResult
+}
+
+export interface ReportSource {
+  analysis_cache_id?: number
+  event_id?: number
+  window_months?: number
+  region_codes?: string[]
 }
 
 export interface ReportDraft {
@@ -23,6 +32,7 @@ export interface ReportAiEnhancement {
 }
 
 export interface ReportAnalysisResult {
+  analysis_cache_id?: number
   summary?: ReportAnalysisSummary
 }
 

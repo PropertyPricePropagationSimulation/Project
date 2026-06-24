@@ -12,6 +12,7 @@ import QnaWriteView     from '@/views/QnaWriteView.vue'
 import LoginView        from '@/views/LoginView.vue'
 import RegisterView     from '@/views/RegisterView.vue'
 import MyPageView       from '@/views/MyPageView.vue'
+import ScenarioView     from '@/views/ScenarioView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +29,7 @@ const router = createRouter({
     { path: '/login',         name: 'login',         component: LoginView },
     { path: '/register',      name: 'register',      component: RegisterView },
     { path: '/mypage',        name: 'mypage',        component: MyPageView,  meta: { requiresAuth: true } },
+    { path: '/scenarios/:scenarioId', name: 'scenarioDetail', component: ScenarioView, meta: { requiresAuth: true } },
   ],
 })
 

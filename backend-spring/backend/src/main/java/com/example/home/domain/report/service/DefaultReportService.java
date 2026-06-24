@@ -13,6 +13,7 @@ import com.example.home.global.exception.docs.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class DefaultReportService implements ReportService {
                     "해당 조건의 분석 결과가 없습니다. 먼저 분석을 실행해 주세요.");
         }
 
-        JsonNode analysisResult = parseAnalysisResult(cache.getResultJson());
+        JsonNode analysisResult = parseAnalysisResult(cache);
         ReportDraft draft = reportDraftGenerator.generate(analysisResult);
         ReportAiResult aiResult = reportAiService.enhance(draft, analysisResult);
         ReportDocument document = new ReportDocument(
@@ -60,9 +61,13 @@ public class DefaultReportService implements ReportService {
         return reportSeedStore.get(reportId);
     }
 
-    private JsonNode parseAnalysisResult(String resultJson) {
+    private JsonNode parseAnalysisResult(AnalysisCache cache) {
         try {
-            return objectMapper.readTree(resultJson);
+            JsonNode root = objectMapper.readTree(cache.getResultJson());
+            if (root instanceof ObjectNode objectNode) {
+                objectNode.put("analysis_cache_id", cache.getCacheId());
+            }
+            return root;
         } catch (JsonProcessingException e) {
             throw new BusinessException(ErrorCode.REPORT_ANALYSIS_RESULT_INVALID,
                     "분석 캐시 결과 JSON을 읽을 수 없습니다.");

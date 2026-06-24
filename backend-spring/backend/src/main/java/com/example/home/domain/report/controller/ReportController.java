@@ -67,6 +67,7 @@ public class ReportController {
         response.put("report_id", report.reportId());
         response.put("status", report.status());
         response.put("created_at", report.createdAt());
+        response.put("analysis_cache_id", report.source() != null ? report.source().analysisCacheId() : null);
         response.put("source", report.source());
         response.put("draft", report.draft());
         response.put("ai_enhancement", plainJson(report.aiEnhancement()));
