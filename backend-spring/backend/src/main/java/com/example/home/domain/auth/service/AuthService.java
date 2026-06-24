@@ -50,7 +50,7 @@ public class AuthService {
                 .nickname(request.nickname())
                 .birthDate(request.birthDate())
                 .memberStatus(MemberStatus.ACTIVE)
-                .memberRole(MemberRole.ROLE_USER)
+                .memberRole(MemberRole.USER)
                 .build();
         memberRepository.save(member);
         return issueToken(member.getUserId(), member.getMemberRole());

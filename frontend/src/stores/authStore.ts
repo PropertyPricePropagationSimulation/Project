@@ -17,8 +17,9 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => {
     if (!accessToken.value) return false
     try {
-      const payload = JSON.parse(atob(accessToken.value.split('.')[1] ?? ''))
-      return payload.role === 'ROLE_ADMIN'
+      const b64 = (accessToken.value.split('.')[1] ?? '').replace(/-/g, '+').replace(/_/g, '/')
+      const payload = JSON.parse(atob(b64))
+      return payload.role === 'ADMIN'
     } catch { return false }
   })
 

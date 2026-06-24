@@ -46,7 +46,7 @@ public class NoticeController {
     }
 
     @Operation(summary = "공지사항 등록 (관리자 전용)")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<Void> createNotice(@RequestBody NoticeRequest request) {
         noticeService.create(SecurityUtils.getCurrentUserId(), request);
@@ -54,7 +54,7 @@ public class NoticeController {
     }
 
     @Operation(summary = "공지사항 수정 (관리자 전용)")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateNotice(
             @Parameter(description = "공지사항 ID") @PathVariable Long id,
@@ -64,7 +64,7 @@ public class NoticeController {
     }
 
     @Operation(summary = "공지사항 삭제 (관리자 전용)")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotice(
             @Parameter(description = "공지사항 ID") @PathVariable Long id) {

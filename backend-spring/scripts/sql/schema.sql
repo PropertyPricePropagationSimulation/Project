@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS member (
     nickname      VARCHAR(50)  NOT NULL,
     birth_date    DATE         NOT NULL,
     member_status VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
-    member_role   VARCHAR(20)  NOT NULL DEFAULT 'ROLE_USER',
+    member_role   VARCHAR(20)  NOT NULL DEFAULT 'USER',
     created_at    DATETIME     NOT NULL DEFAULT NOW(),
     updated_at    DATETIME     NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_id),
