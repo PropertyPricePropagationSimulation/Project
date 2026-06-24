@@ -109,7 +109,6 @@ onMounted(loadScenario)
             </p>
           </div>
 
-          <router-link to="/mypage" class="scenario-back">마이페이지로 돌아가기</router-link>
         </section>
 
         <div v-if="scenarioStore.loading" class="scenario-state">시나리오를 불러오는 중입니다...</div>
@@ -280,7 +279,6 @@ onMounted(loadScenario)
 .scenario-kicker { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: #3b82f6; margin-bottom: 8px; }
 .scenario-hero h1 { font-size: 28px; color: #0f172a; margin-bottom: 10px; }
 .scenario-sub { font-size: 14px; line-height: 1.7; color: #64748b; max-width: 720px; }
-.scenario-back { text-decoration: none; font-size: 14px; color: #3b82f6; white-space: nowrap; }
 .scenario-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px; }
 .summary-card { background: #f8fafc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
 .summary-card span { font-size: 12px; color: #64748b; }
