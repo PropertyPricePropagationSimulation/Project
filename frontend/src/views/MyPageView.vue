@@ -193,7 +193,6 @@ function signed(value: number | undefined) {
         <section class="mp-section">
           <div class="mp-section-hdr">
             <h2 class="mp-section-title">AI 리포트</h2>
-            <router-link to="/analysis" class="mp-analysis-link">분석 페이지로 이동</router-link>
           </div>
 
           <div v-if="reportStore.report" class="mp-report-card">
@@ -286,8 +285,6 @@ function signed(value: number | undefined) {
 .mp-section { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
 .mp-section-hdr { display: flex; justify-content: space-between; align-items: center; }
 .mp-section-title { font-size: 16px; font-weight: 700; color: #1e293b; }
-.mp-analysis-link { font-size: 13px; color: #3b82f6; text-decoration: none; }
-.mp-analysis-link:hover { text-decoration: underline; }
 
 .mp-loading { padding: 28px; color: #94a3b8; font-size: 14px; }
 .mp-profile-card { display: flex; align-items: center; gap: 16px; padding: 28px; }
