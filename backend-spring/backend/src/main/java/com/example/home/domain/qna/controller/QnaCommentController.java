@@ -54,12 +54,12 @@ public class QnaCommentController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "댓글 삭제 (작성자 본인)")
+    @Operation(summary = "댓글 삭제 (작성자 본인 또는 관리자)")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @Parameter(description = "Q&A ID") @PathVariable Long qnaId,
             @Parameter(description = "댓글 ID") @PathVariable Long commentId) {
-        qnaCommentService.delete(commentId, SecurityUtils.getCurrentUserId());
+        qnaCommentService.delete(commentId, SecurityUtils.getCurrentUserId(), SecurityUtils.isAdmin());
         return ResponseEntity.noContent().build();
     }
 }

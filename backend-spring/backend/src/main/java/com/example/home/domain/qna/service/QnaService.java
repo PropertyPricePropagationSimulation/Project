@@ -16,5 +16,5 @@ public interface QnaService {
 
     void updateAnswered(Long id, Long userId, boolean isAdmin, boolean answered);
 
-    void delete(Long id, Long userId);
+    void delete(Long id, Long userId, boolean isAdmin);
 }

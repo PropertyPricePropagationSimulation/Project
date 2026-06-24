@@ -73,11 +73,11 @@ public class QnaController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Q&A 삭제 (작성자 본인)")
+    @Operation(summary = "Q&A 삭제 (작성자 본인 또는 관리자)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQna(
             @Parameter(description = "Q&A ID") @PathVariable Long id) {
-        qnaService.delete(id, SecurityUtils.getCurrentUserId());
+        qnaService.delete(id, SecurityUtils.getCurrentUserId(), SecurityUtils.isAdmin());
         return ResponseEntity.noContent().build();
     }
 }
