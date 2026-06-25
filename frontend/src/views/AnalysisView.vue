@@ -198,19 +198,23 @@ onUnmounted(() => {
         @update:window-months="onWindowMonthsChange"
       />
       <div class="ctrl-bar-r">
-        <button
-          class="report-btn"
-          data-tour="report-button"
-          :disabled="reportStore.loading || !store.analysisResult || store.loading"
-          @click="handleReportAction"
-        >
-          {{ reportStore.loading ? '처리 중...' : reportStore.report ? 'PDF 다운로드' : authStore.isLoggedIn ? 'AI 리포트 생성' : 'AI 리포트 (로그인 필요)' }}
-        </button>
-        <div class="ltog" :class="{ on: showLabels }" @click="showLabels = !showLabels">
-          <div class="tog-dot"></div>지역 라벨
+        <div class="ctrl-bar-r-main">
+          <button
+            class="report-btn"
+            data-tour="report-button"
+            :disabled="reportStore.loading || !store.analysisResult || store.loading"
+            @click="handleReportAction"
+          >
+            {{ reportStore.loading ? '처리 중...' : reportStore.report ? 'PDF 다운로드' : authStore.isLoggedIn ? 'AI 리포트 생성' : 'AI 리포트 (로그인 필요)' }}
+          </button>
+          <div class="ltog" :class="{ on: showLabels }" @click="showLabels = !showLabels">
+            <div class="tog-dot"></div>지역 라벨
+          </div>
         </div>
-        <div class="live"><div class="ldot"></div>LIVE</div>
-        <button class="tour-btn" title="도움말" @click="startTour">?</button>
+        <div class="ctrl-bar-r-sub">
+          <div class="live"><div class="ldot"></div>LIVE</div>
+          <button class="tour-btn" title="도움말" @click="startTour">?</button>
+        </div>
       </div>
     </div>
 

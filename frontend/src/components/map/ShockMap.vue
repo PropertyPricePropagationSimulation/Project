@@ -26,7 +26,6 @@ const LINE = 'rgba(20,30,50,.12)'
 let baseGeoJSON: Record<string, unknown> | null = null
 let mapLoaded = false
 let animId: number | null = null
-let containerRO: ResizeObserver | null = null
 let labelPoints: Array<Record<string, unknown>> = []
 const dispVals: Record<string, number> = {}
 const regionMap: Record<string, RegionResult> = {}
@@ -157,16 +156,6 @@ function startAnim() {
   loop()
 }
 
-function updateLabelTextSize(width: number) {
-  if (!mapLoaded || !map) return
-  const scale = Math.min(Math.max(width / 1400, 0.75), 1.3)
-  map.setLayoutProperty('districts-labels', 'text-size', [
-    'interpolate', ['linear'], ['zoom'],
-    9,  Math.round(9  * scale),
-    11, Math.round(12 * scale),
-    13, Math.round(15 * scale),
-  ])
-}
 
 function setProgress(pct: number, txt: string) {
   const fill = document.getElementById('ldFill')
@@ -242,12 +231,7 @@ onMounted(() => {
     antialias: true,
   })
 
-  containerRO = new ResizeObserver(([entry]) => {
-    updateLabelTextSize(entry.contentRect.width)
-  })
-  containerRO.observe(map.getContainer())
-
-  map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right')
+map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right')
 
   // compass 버튼: bearing만 리셋 → 초기 위치·줌·pitch·bearing 전체 복원으로 교체
   nextTick(() => {
@@ -333,7 +317,7 @@ onMounted(() => {
         layout: {
           'text-field': ['get', 'name'],
           'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 9, 9, 11, 12, 13, 15],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 9, 11, 11, 14, 13, 18],
           'text-offset': [0, 0],
           'text-anchor': 'center',
           'text-allow-overlap': false,
@@ -418,7 +402,6 @@ onMounted(() => {
 
       setProgress(100, '완료')
       mapLoaded = true
-      updateLabelTextSize(map!.getContainer().clientWidth)
       pushMapData()
 
       setTimeout(() => {
@@ -443,7 +426,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (animId !== null) cancelAnimationFrame(animId)
-  containerRO?.disconnect()
   if (map) {
     map.remove()
     map = null

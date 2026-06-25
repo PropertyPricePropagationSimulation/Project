@@ -127,7 +127,13 @@ onUnmounted(() => {
     </div>
     <div class="tick-area">
       <div class="trow">
-        <span v-for="(m, i) in months" :key="i" class="tk" :class="{ on: i === modelValue }">{{ m }}</span>
+        <span
+          v-for="(m, i) in months"
+          :key="i"
+          class="tk"
+          :class="{ on: i === modelValue }"
+          :style="{ left: (i / (months.length - 1) * 100) + '%' }"
+        >{{ m }}</span>
       </div>
       <div class="ev-mark" :style="{ left: eventMarkPct, transform: 'translateX(-50%)' }">
         <div class="em-dot"></div>

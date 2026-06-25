@@ -23,8 +23,10 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .ui > * { pointer-events: auto; }
 
 /* ANALYSIS CONTROL BAR */
-.ctrl-bar { position: absolute; top: 60px; left: 0; right: 0; background: var(--panel); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); display: flex; align-items: center; gap: 12px; padding: 7px 16px; }
-.ctrl-bar-r { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ctrl-bar { position: absolute; top: 60px; left: 0; right: 0; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); display: flex; align-items: center; gap: 12px; padding: 7px 16px; }
+.ctrl-bar-r { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.ctrl-bar-r-main { display: flex; align-items: center; gap: 8px; }
+.ctrl-bar-r-sub { display: flex; align-items: center; gap: 6px; }
 .hdiv { width: 1px; height: 16px; background: var(--border2); }
 .hdiv-sm { width: 1px; height: 12px; background: var(--border2); }
 .wsel { display: flex; align-items: center; gap: 3px; }
@@ -56,7 +58,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .ltog:hover { border-color: rgba(20,30,50,.3); color: var(--w1); }
 .ltog.on { border-color: rgba(0,140,70,.4); color: rgba(0,120,60,.9); }
 .tog-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-.live { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--w3); letter-spacing: 1px; }
+.live { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; color: var(--w2); letter-spacing: 1.5px; }
 .ldot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; animation: lp 2s infinite; }
 @keyframes lp { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 .tour-btn { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border2); background: transparent; color: var(--w3); font-size: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .12s; font-family: 'Inter', sans-serif; flex-shrink: 0; line-height: 1; }
@@ -92,23 +94,23 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .tp-pct { font-size: 9.5px; font-weight: 600; font-family: 'JetBrains Mono', monospace; min-width: 34px; text-align: right; }
 
 /* BOTTOM PANEL */
-.bot { position: absolute; bottom: 0; left: 0; right: 0; background: var(--panel); border-top: 1px solid var(--border); backdrop-filter: blur(20px); padding: 10px 20px 14px; }
-.bt-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.bt-l { font-size: 8px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--w3); }
-.bt-c { font-size: 11px; font-weight: 500; font-family: 'JetBrains Mono', monospace; }
-.ctrl { display: flex; gap: 3px; }
-.cb { width: 24px; height: 24px; border-radius: 4px; background: var(--w4); border: 1px solid var(--border2); color: var(--w2); font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .12s; font-family: 'Inter', sans-serif; }
+.bot { position: absolute; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--border2); backdrop-filter: blur(20px); padding: 12px 24px 16px; }
+.bt-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.bt-l { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--w3); }
+.bt-c { font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace; }
+.ctrl { display: flex; gap: 4px; }
+.cb { width: 26px; height: 26px; border-radius: 4px; background: var(--w4); border: 1px solid var(--border2); color: var(--w2); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .12s; font-family: 'Inter', sans-serif; }
 .cb:hover { background: #f1f5f9; border-color: #94a3b8; color: var(--w1); }
 .cb.on { background: var(--w1); border-color: var(--w1); color: var(--on-accent); }
-.str { position: relative; height: 20px; cursor: pointer; display: flex; align-items: center; user-select: none; margin-bottom: 4px; }
+.str { position: relative; height: 22px; cursor: pointer; display: flex; align-items: center; user-select: none; margin-bottom: 6px; }
 .stl { position: absolute; left: 0; right: 0; height: 3px; background: var(--w4); border-radius: 1.5px; pointer-events: none; }
 .stf { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 3px; border-radius: 1.5px; background: var(--w1); pointer-events: none; }
-.sth { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 14px; height: 14px; border-radius: 50%; background: var(--w1); border: 2px solid var(--bg); box-shadow: 0 0 12px rgba(0,0,0,.12); cursor: grab; z-index: 2; }
+.sth { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 15px; height: 15px; border-radius: 50%; background: var(--w1); border: 2px solid var(--bg); box-shadow: 0 0 12px rgba(0,0,0,.12); cursor: grab; z-index: 2; }
 .sth:active { cursor: grabbing; }
-.tick-area { position: relative; height: 20px; }
-.trow { display: flex; justify-content: space-between; position: absolute; left: 0; right: 0; }
-.tk { font-size: 7.5px; color: var(--w3); transition: color .2s; text-align: center; flex: 1; }
-.tk.on { color: var(--w1); }
+.tick-area { position: relative; height: 18px; }
+.trow { position: absolute; left: 0; right: 0; top: 0; }
+.tk { position: absolute; transform: translateX(-50%); font-size: 9px; color: var(--w3); transition: color .2s; text-align: center; white-space: nowrap; }
+.tk.on { color: var(--w1); font-weight: 600; }
 .ev-mark { position: absolute; top: 0; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
 .em-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,200,80,.85); margin-bottom: 1px; }
 .em-line { width: 1px; height: 12px; background: rgba(255,200,80,.4); }
