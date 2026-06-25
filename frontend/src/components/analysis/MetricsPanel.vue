@@ -85,7 +85,7 @@ const sz = computed(() => SIZES[size.value])
 
     <div class="mc" :style="{ padding: sz.pad }">
       <div class="mc-l" :style="{ fontSize: sz.mcl }">반응 지역 수</div>
-      <div class="mc-v" :style="{ fontSize: sz.mcv, color: 'rgba(255,255,255,.75)' }">
+      <div class="mc-v" :style="{ fontSize: sz.mcv, color: 'var(--w1)' }">
         {{ activeCount }}<span :style="{ fontSize: sz.mcs, color: 'var(--w3)' }"> / {{ regions.length }}</span>
       </div>
       <div class="mc-s" :style="{ fontSize: sz.mcs }">현재 시점 기준</div>
