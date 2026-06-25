@@ -1,27 +1,25 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { MapEvent } from '@/types/analysis'
 import { useAnalysisStore } from '@/stores/analysisStore'
 import { useReportStore } from '@/stores/reportStore'
 import { useAuthStore } from '@/stores/authStore'
+import AppHeader from '@/components/common/AppHeader.vue'
 import ShockMap from '@/components/map/ShockMap.vue'
 import EventSelector from '@/components/analysis/EventSelector.vue'
 import MetricsPanel from '@/components/analysis/MetricsPanel.vue'
 import TimelineSlider from '@/components/analysis/TimelineSlider.vue'
-import WindowSelector from '@/components/analysis/WindowSelector.vue'
 import ReportPreview from '@/components/report/ReportPreview.vue'
 import '@/assets/styles/analysis.css'
+import '@/assets/styles/tour.css'
+import { useAnalysisTour } from '@/composables/useAnalysisTour'
 
 const router      = useRouter()
 const store       = useAnalysisStore()
 const reportStore = useReportStore()
 const authStore   = useAuthStore()
-
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/')
-}
+const { startTour, startTourIfFirst } = useAnalysisTour()
 
 // ── 타임라인 월 목록 (window_months 기반 동적 생성) ─────────────────────────
 const MONTHS = computed(() => {
@@ -29,6 +27,14 @@ const MONTHS = computed(() => {
   const post = Array.from({ length: store.windowMonths }, (_, i) => `T+${i + 1}`)
   return [...pre, 'T+0', ...post]
 })
+
+// ── ctrl-bar 높이 추적 → MetricsPanel top 동적 계산 ───────────────────────
+const ctrlBarRef  = ref<HTMLElement | null>(null)
+const timelineRef = ref<HTMLElement | null>(null)
+const panelTop    = ref(144) // AppHeader(60) + ctrl-bar 기본 높이(60) + margin(24)
+const panelBottom = ref(116) // timeline 기본 높이 + margin(16)
+let   ctrlBarRO:  ResizeObserver | null = null
+let   timelineRO: ResizeObserver | null = null
 
 // ── UI 상태 ────────────────────────────────────────────────────────────────
 const selectedEvIdx = ref(0)
@@ -55,6 +61,16 @@ const events = computed<MapEvent[]>(() =>
 const currentEvent = computed(() => events.value[selectedEvIdx.value])
 
 watch(curMonth, m => { store.currentRelativeMonth = m - 3 })
+
+// 분석 결과가 처음 들어온 뒤 투어 시작 — 데이터 없이 투어하면 메트릭 패널이 비어 있음
+watch(
+  () => store.analysisResult,
+  (result) => {
+    if (!result) return
+    void startTourIfFirst()
+  },
+  { once: true },
+)
 
 // ── 이벤트 선택 ────────────────────────────────────────────────────────────
 function onEventSelect(i: number) {
@@ -122,9 +138,30 @@ function cancelConfirm() {
 
 // ── 초기 로드 ──────────────────────────────────────────────────────────────
 onMounted(async () => {
+  if (ctrlBarRef.value) {
+    ctrlBarRO = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) panelTop.value = 60 + Math.round(entry.contentRect.height) + 24
+    })
+    ctrlBarRO.observe(ctrlBarRef.value)
+  }
+  const timelineEl = (timelineRef.value as any)?.$el as HTMLElement | undefined
+  if (timelineEl) {
+    timelineRO = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) panelBottom.value = Math.round(entry.contentRect.height) + 16
+    })
+    timelineRO.observe(timelineEl)
+  }
+
   await store.fetchEvents()
   const first = events.value[0]
   if (first) store.selectEvent(first.id)
+})
+
+onUnmounted(() => {
+  ctrlBarRO?.disconnect()
+  timelineRO?.disconnect()
 })
 </script>
 
@@ -144,69 +181,47 @@ onMounted(async () => {
     :current-relative-month="curMonth - 3"
     :show-labels="showLabels"
     :paused="confirmState !== null"
+    :playing="playing"
     @region-click="onRegionClick"
   />
 
   <div class="ui">
-    <!-- ── Nav Header ─────────────────────────────────────────────── -->
-    <header class="hdr">
-      <div class="hdr-inner">
-        <router-link to="/" class="logo-link">
-          <div class="logo-sq">EF</div>
-          <span class="logo-nm">EstateFlow</span>
-        </router-link>
-
-        <nav class="hdr-nav">
-          <router-link to="/analysis" class="hdr-nav-a">분석</router-link>
-          <router-link to="/search"   class="hdr-nav-a">거래 검색</router-link>
-          <router-link to="/notices"  class="hdr-nav-a">공지사항</router-link>
-          <router-link to="/qna"      class="hdr-nav-a">Q&amp;A</router-link>
-        </nav>
-
-        <div class="hdr-auth">
-          <template v-if="authStore.isLoggedIn">
-            <router-link to="/mypage" class="hdr-auth-a">{{ authStore.nickname }}</router-link>
-            <button class="hdr-auth-btn" @click="handleLogout">로그아웃</button>
-          </template>
-          <template v-else>
-            <router-link to="/login"    class="hdr-auth-a">로그인</router-link>
-            <router-link to="/register" class="hdr-auth-btn-reg">회원가입</router-link>
-          </template>
-        </div>
-      </div>
-    </header>
+    <AppHeader />
 
     <!-- ── Analysis Control Bar ───────────────────────────────────── -->
-    <div class="ctrl-bar">
-      <div></div><!-- grid left spacer -->
+    <div ref="ctrlBarRef" class="ctrl-bar">
       <EventSelector
         :events="events"
         :model-value="selectedEvIdx"
+        :window-months="store.windowMonths"
         @update:model-value="onEventSelect"
+        @update:window-months="onWindowMonthsChange"
       />
       <div class="ctrl-bar-r">
-        <WindowSelector
-          :model-value="store.windowMonths"
-          @update:model-value="onWindowMonthsChange($event)"
-        />
-        <div class="hdiv-sm"></div>
-        <button
-          class="report-btn"
-          :disabled="reportStore.loading || !store.analysisResult || store.loading"
-          @click="handleReportAction"
-        >
-          {{ reportStore.loading ? '처리 중...' : reportStore.report ? 'PDF 다운로드' : authStore.isLoggedIn ? 'AI 리포트 생성' : 'AI 리포트 (로그인 필요)' }}
-        </button>
-        <div class="ltog" :class="{ on: showLabels }" @click="showLabels = !showLabels">
-          <div class="tog-dot"></div>지역 라벨
+        <div class="ctrl-bar-r-main">
+          <button
+            class="report-btn"
+            data-tour="report-button"
+            :disabled="reportStore.loading || !store.analysisResult || store.loading"
+            @click="handleReportAction"
+          >
+            {{ reportStore.loading ? '처리 중...' : reportStore.report ? 'PDF 다운로드' : authStore.isLoggedIn ? 'AI 리포트 생성' : 'AI 리포트 (로그인 필요)' }}
+          </button>
+          <div class="ltog" :class="{ on: showLabels }" @click="showLabels = !showLabels">
+            <div class="tog-dot"></div>지역 라벨
+          </div>
         </div>
-        <div class="live"><div class="ldot"></div>LIVE</div>
+        <div class="ctrl-bar-r-sub">
+          <div class="live"><div class="ldot"></div>LIVE</div>
+          <button class="tour-btn" title="도움말" @click="startTour">?</button>
+        </div>
       </div>
     </div>
 
     <MetricsPanel
       :regions="store.analysisResult?.regions ?? []"
       :current-relative-month="curMonth - 3"
+      :style="{ top: panelTop + 'px', maxHeight: `calc(100vh - ${panelTop}px - ${panelBottom}px)` }"
     />
     <ReportPreview
       v-if="reportStore.report"
@@ -215,7 +230,8 @@ onMounted(async () => {
       @download="reportStore.download"
     />
 
-      <TimelineSlider
+    <TimelineSlider
+      ref="timelineRef"
       :months="MONTHS"
       :model-value="curMonth"
       :playing="playing"
@@ -255,16 +271,16 @@ onMounted(async () => {
   justify-content: center;
 }
 .av-modal-card {
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 32px 36px;
   min-width: 300px;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
 }
 .av-modal-label {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  color: #94a3b8;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -273,17 +289,17 @@ onMounted(async () => {
 .av-modal-region {
   font-size: 26px;
   font-weight: 700;
-  color: #fff;
+  color: #1e293b;
   line-height: 1.2;
 }
 .av-modal-ym {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.55);
+  color: #64748b;
   margin-top: 4px;
 }
 .av-modal-desc {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #94a3b8;
   margin-top: 10px;
   margin-bottom: 28px;
 }
@@ -294,8 +310,8 @@ onMounted(async () => {
 }
 .av-modal-cancel {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.45);
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   padding: 9px 18px;
   border-radius: 8px;
   font-size: 13px;
@@ -304,8 +320,8 @@ onMounted(async () => {
   transition: border-color 0.12s, color 0.12s;
 }
 .av-modal-cancel:hover {
-  border-color: rgba(255, 255, 255, 0.35);
-  color: rgba(255, 255, 255, 0.75);
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 .av-modal-confirm {
   background: #3b82f6;

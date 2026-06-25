@@ -66,7 +66,13 @@ const sz = computed(() => SIZES[size.value])
 </script>
 
 <template>
-  <div class="rp-wrap">
+  <div class="rp-wrap" data-tour="metrics-panel">
+    <!-- 사이즈 컨트롤: 패널 상단 -->
+    <div class="rp-szctrl">
+      <button class="rp-sz" :disabled="size === 0" @click="decreaseSize">−</button>
+      <button class="rp-sz" :disabled="size === 2" @click="increaseSize">+</button>
+    </div>
+
     <div class="rp" :style="{ width: sz.rp }">
 
     <div class="mc" :style="{ padding: sz.pad }">
@@ -120,19 +126,13 @@ const sz = computed(() => SIZES[size.value])
 
     </div><!-- /.rp -->
 
-    <!-- 사이즈 컨트롤: 플로팅과 타임라인 사이 -->
-    <div class="rp-szctrl">
-      <button class="rp-sz" :disabled="size === 0" @click="decreaseSize">−</button>
-      <button class="rp-sz" :disabled="size === 2" @click="increaseSize">+</button>
-    </div>
-
   </div><!-- /.rp-wrap -->
 </template>
 
 <style scoped>
 .rp-szctrl {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 4px;
   flex-shrink: 0;
   pointer-events: auto;
@@ -141,9 +141,9 @@ const sz = computed(() => SIZES[size.value])
   width: 20px;
   height: 20px;
   border-radius: 4px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.04);
-  color: rgba(255,255,255,.45);
+  border: none;
+  background: var(--glass);
+  color: var(--w3);
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
@@ -153,11 +153,13 @@ const sz = computed(() => SIZES[size.value])
   transition: all .12s;
   font-family: 'Inter', sans-serif;
   padding: 0;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 .rp-sz:hover:not(:disabled) {
-  border-color: rgba(255,255,255,.3);
-  color: rgba(255,255,255,.85);
-  background: rgba(255,255,255,.08);
+  color: var(--w1);
+  background: var(--panel);
+  box-shadow: 0 2px 6px rgba(0,0,0,.10);
 }
 .rp-sz:disabled {
   opacity: 0.25;

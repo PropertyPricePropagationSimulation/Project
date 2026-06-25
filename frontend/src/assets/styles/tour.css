@@ -1,0 +1,94 @@
+/* ── Driver.js 투어 스타일 ── */
+
+/*
+  전략: overlayOpacity: 0으로 오버레이 투명 처리.
+  dimming 없이 활성 요소에만 box-shadow glow로 하이라이팅.
+  모든 UI 요소 밝기 변화 없이 통일된 상태 유지.
+*/
+
+
+/* ── 팝오버 ──────────────────────────────────────────────────────────── */
+.ef-tour-popover.driver-popover {
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(20, 30, 50, 0.16);
+  border-radius: 12px;
+  padding: 20px 22px;
+  min-width: 260px;
+  max-width: 300px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  font-family: 'Inter', sans-serif;
+}
+
+.ef-tour-popover .driver-popover-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(16, 20, 28, 0.96);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.ef-tour-popover .driver-popover-description {
+  font-size: 12px;
+  color: rgba(40, 50, 65, 0.62);
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+
+.ef-tour-popover .driver-popover-close-btn {
+  font-size: 14px;
+  color: rgba(60, 72, 90, 0.42);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.12s;
+}
+.ef-tour-popover .driver-popover-close-btn:hover {
+  color: rgba(16, 20, 28, 0.96);
+}
+
+.ef-tour-popover .driver-popover-progress-text {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: rgba(60, 72, 90, 0.42);
+  text-transform: uppercase;
+}
+
+.ef-tour-popover .driver-popover-footer button {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+  line-height: 1;
+}
+
+.ef-tour-popover .driver-popover-prev-btn {
+  background: transparent;
+  border: 1px solid rgba(20, 30, 50, 0.16);
+  color: rgba(40, 50, 65, 0.62);
+}
+.ef-tour-popover .driver-popover-prev-btn:hover:not(:disabled) {
+  border-color: rgba(20, 30, 50, 0.3);
+  color: rgba(16, 20, 28, 0.96);
+}
+.ef-tour-popover .driver-popover-prev-btn:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ef-tour-popover .driver-popover-next-btn {
+  background: rgba(30, 100, 220, 0.08);
+  border: 1px solid rgba(30, 100, 220, 0.4);
+  color: rgba(20, 70, 200, 0.9);
+  font-weight: 600;
+}
+.ef-tour-popover .driver-popover-next-btn:hover {
+  background: rgba(30, 100, 220, 0.15);
+  border-color: rgba(30, 100, 220, 0.65);
+  color: rgba(10, 50, 180, 1);
+}
