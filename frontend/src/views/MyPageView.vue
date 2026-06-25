@@ -320,7 +320,7 @@ function fmtDate(value?: string) {
               </div>
 
               <div class="mp-report-meta">
-                생성일 {{ fmtDate(item.created_at) }} · 분석 캐시 #{{ item.analysis_cache_id }}
+                생성일 {{ fmtDate(item.created_at) }}
               </div>
 
               <div class="mp-report-actions">
