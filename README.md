@@ -226,7 +226,7 @@ cd frontend
 pnpm install
 
 # 환경 변수 설정
-cp .env.example .env.local
+# .env.local 파일 생성 후 아래 환경 변수 섹션 참고 .env.local 파일 생성 후 아래 환경 변수 섹션 참고
 
 # 개발 서버 실행 (http://localhost:5173)
 pnpm run dev
