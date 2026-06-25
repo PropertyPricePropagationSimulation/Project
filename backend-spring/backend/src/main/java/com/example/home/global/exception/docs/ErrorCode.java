@@ -16,8 +16,12 @@ public enum ErrorCode {
 	*/
 
     // 400 Bad Request
-    INVALID_INPUT(HttpStatus.BAD_REQUEST, "E400", "입력값이 올바르지 않습니다."),
-
+	INVALID_INPUT(HttpStatus.BAD_REQUEST, "E400", "입력값이 올바르지 않습니다."),
+	PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "M400", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
+	SAME_PASSWORD(HttpStatus.BAD_REQUEST, "M401", "현재 비밀번호와 다른 비밀번호를 입력해야 합니다."),
+	INVALID_PASSWORD_FORMAT(HttpStatus.BAD_REQUEST, "M402", "비밀번호 형식이 올바르지 않습니다."),
+	INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "M403", "현재 비밀번호가 올바르지 않습니다."),
+    
     // 401 Unauthorized
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "J401", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "J402", "만료된 토큰입니다."),

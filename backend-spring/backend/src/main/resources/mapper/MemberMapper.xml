@@ -44,9 +44,18 @@
     <update id="update">
         UPDATE member
         SET nickname    = #{nickname},
+        	birth_date  = #{birthDate},
             updated_at  = NOW()
         WHERE user_id = #{userId}
     </update>
+    
+    <update id="updatePassword">
+    	UPDATE member
+    	SET
+        	password = #{password},
+        	updated_at = NOW()
+    	WHERE user_id = #{id}
+	</update>
 
     <update id="deleteById">
         UPDATE member

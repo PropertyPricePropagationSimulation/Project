@@ -1,7 +1,9 @@
 package com.example.home.domain.member.service;
 
+import com.example.home.domain.member.dto.MemberPasswordChangeRequest;
 import com.example.home.domain.member.dto.MemberRequest;
 import com.example.home.domain.member.dto.MemberResponse;
+import com.example.home.domain.member.dto.MemberUpdateRequest;
 
 public interface MemberService {
 
@@ -13,7 +15,9 @@ public interface MemberService {
 
     void register(MemberRequest request);
 
-    void update(Long id, MemberRequest request);
+    void update(Long id, MemberUpdateRequest request);
 
+    void changePassword(Long id, MemberPasswordChangeRequest request);
+    
     void delete(Long id);
 }
