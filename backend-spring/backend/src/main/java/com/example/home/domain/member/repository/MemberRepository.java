@@ -17,5 +17,7 @@ public interface MemberRepository {
 
     void update(Member member);
 
+    void updatePassword(@Param("id") Long id, @Param("password") String password);
+    
     void deleteById(@Param("id") Long id);
 }

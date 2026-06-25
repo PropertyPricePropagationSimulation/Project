@@ -6,7 +6,14 @@ import AppFooter from '@/components/common/AppFooter.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useReportStore } from '@/stores/reportStore'
 import { useScenarioStore } from '@/stores/scenarioStore'
-import { getMember, parseUserId, updateMember, withdrawMember, type MemberResponse } from '@/api/authApi'
+import {
+  getMember,
+  parseUserId,
+  updateMember,
+  changePassword,
+  withdrawMember,
+  type MemberResponse,
+} from '@/api/authApi'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -15,10 +22,21 @@ const scenarioStore = useScenarioStore()
 
 const member = ref<MemberResponse | null>(null)
 const loading = ref(false)
-const editingNick = ref(false)
-const newNick = ref('')
-const nickSaving = ref(false)
-const nickError = ref('')
+
+const showEditModal = ref(false)
+const editNick = ref('')
+const editBirthDate = ref('')
+const editSaving = ref(false)
+const editError = ref('')
+
+const showPwModal = ref(false)
+const pwCur = ref('')
+const pwNew = ref('')
+const pwConfirm = ref('')
+const pwSaving = ref(false)
+const pwError = ref('')
+const pwSuccess = ref(false)
+
 const showWithdrawModal = ref(false)
 const withdrawing = ref(false)
 
@@ -44,42 +62,83 @@ onMounted(async () => {
   }
 })
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/')
+function openEditModal() {
+  editNick.value = member.value?.nickname ?? authStore.nickname ?? ''
+  editBirthDate.value = member.value?.birthDate ?? ''
+  editError.value = ''
+  showEditModal.value = true
 }
 
-function startEditNick() {
-  newNick.value = authStore.nickname ?? ''
-  nickError.value = ''
-  editingNick.value = true
-}
-
-async function saveNick() {
-  const trimmed = newNick.value.trim()
+async function saveProfile() {
+  const trimmed = editNick.value.trim()
   if (trimmed.length < 2) {
-    nickError.value = '닉네임은 2자 이상이어야 합니다.'
+    editError.value = '닉네임은 2자 이상이어야 합니다.'
     return
   }
   if (trimmed.length > 20) {
-    nickError.value = '닉네임은 20자 이하로 입력해 주세요.'
+    editError.value = '닉네임은 20자 이하로 입력해 주세요.'
     return
   }
 
-  nickSaving.value = true
-  nickError.value = ''
+  editSaving.value = true
+  editError.value = ''
   try {
     const userId = member.value?.userId ?? parseUserId(authStore.accessToken ?? '')
-    if (!userId) return
-    await updateMember(userId, trimmed)
+    if (!userId) {
+      editError.value = '사용자 정보를 확인할 수 없습니다.'
+      return
+    }
+
+    const birthDate = editBirthDate.value || null
+    await updateMember(userId, { nickname: trimmed, birthDate })
     localStorage.setItem('nickname', trimmed)
     authStore.nickname = trimmed
-    if (member.value) member.value = { ...member.value, nickname: trimmed }
-    editingNick.value = false
+    if (member.value) member.value = { ...member.value, nickname: trimmed, birthDate }
+    showEditModal.value = false
   } catch {
-    nickError.value = '닉네임 수정에 실패했습니다.'
+    editError.value = '프로필 수정에 실패했습니다.'
   } finally {
-    nickSaving.value = false
+    editSaving.value = false
+  }
+}
+
+function openPwModal() {
+  pwCur.value = ''
+  pwNew.value = ''
+  pwConfirm.value = ''
+  pwError.value = ''
+  pwSuccess.value = false
+  showPwModal.value = true
+}
+
+async function savePassword() {
+  if (!pwCur.value || !pwNew.value || !pwConfirm.value) {
+    pwError.value = '모든 항목을 입력해 주세요.'
+    return
+  }
+  if (pwNew.value.length < 8) {
+    pwError.value = '새 비밀번호는 8자 이상이어야 합니다.'
+    return
+  }
+  if (pwNew.value !== pwConfirm.value) {
+    pwError.value = '새 비밀번호가 일치하지 않습니다.'
+    return
+  }
+
+  pwSaving.value = true
+  pwError.value = ''
+  try {
+    const userId = member.value?.userId ?? parseUserId(authStore.accessToken ?? '')
+    if (!userId) {
+      pwError.value = '사용자 정보를 확인할 수 없습니다.'
+      return
+    }
+    await changePassword(userId, pwCur.value, pwNew.value, pwConfirm.value)
+    pwSuccess.value = true
+  } catch {
+    pwError.value = '비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해 주세요.'
+  } finally {
+    pwSaving.value = false
   }
 }
 
@@ -108,7 +167,7 @@ async function handleReportDelete(reportId: string) {
   await reportStore.remove(reportId)
 }
 
-function fmtDate(value: string) {
+function fmtDate(value?: string) {
   return value?.slice(0, 10) ?? ''
 }
 </script>
@@ -127,36 +186,96 @@ function fmtDate(value: string) {
             <div class="mp-avatar">{{ (authStore.nickname ?? '?')[0] }}</div>
 
             <div class="mp-profile-info">
-              <div v-if="editingNick" class="mp-nick-edit">
-                <input
-                  v-model="newNick"
-                  class="mp-nick-input"
-                  maxlength="20"
-                  @keyup.enter="saveNick"
-                  @keyup.esc="editingNick = false"
-                />
-                <div class="mp-nick-btns">
-                  <button class="mp-nick-save" :disabled="nickSaving" @click="saveNick">
-                    {{ nickSaving ? '저장 중...' : '저장' }}
-                  </button>
-                  <button class="mp-nick-cancel" @click="editingNick = false">취소</button>
-                </div>
-                <span v-if="nickError" class="mp-nick-err">{{ nickError }}</span>
+              <div class="mp-nick-row">
+                <span class="mp-nick">{{ authStore.nickname }}</span>
               </div>
+              <div class="mp-email">{{ member?.email ?? '-' }}</div>
+              <div v-if="member?.birthDate" class="mp-birthdate">{{ member.birthDate }}</div>
+            </div>
 
-              <template v-else>
-                <div class="mp-nick-row">
-                  <span class="mp-nick">{{ authStore.nickname }}</span>
-                  <button class="mp-nick-edit-btn" @click="startEditNick">수정</button>
-                </div>
-                <div class="mp-email">{{ member?.email ?? '-' }}</div>
-              </template>
+            <div class="mp-profile-actions">
+              <button class="mp-nick-edit-btn" @click="openEditModal">프로필 수정</button>
+              <button class="mp-nick-edit-btn" @click="openPwModal">비밀번호 변경</button>
             </div>
           </div>
 
           <div class="mp-withdraw-row">
             <button class="mp-withdraw-btn" @click="showWithdrawModal = true">회원 탈퇴</button>
           </div>
+
+          <Transition name="mp-modal">
+            <div v-if="showEditModal" class="mp-modal-overlay" @click.self="showEditModal = false">
+              <div class="mp-modal">
+                <h3 class="mp-modal-title">프로필 수정</h3>
+
+                <div class="mp-form">
+                  <label class="mp-form-label">이메일</label>
+                  <input class="mp-form-input mp-form-input--readonly" :value="member?.email ?? ''" readonly />
+
+                  <label class="mp-form-label">닉네임</label>
+                  <input
+                    v-model="editNick"
+                    class="mp-form-input"
+                    maxlength="20"
+                    placeholder="2~20자"
+                    @keyup.enter="saveProfile"
+                  />
+
+                  <label class="mp-form-label">생년월일</label>
+                  <input v-model="editBirthDate" class="mp-form-input" type="date" />
+                </div>
+
+                <span v-if="editError" class="mp-form-err">{{ editError }}</span>
+
+                <div class="mp-modal-actions">
+                  <button class="mp-modal-cancel" @click="showEditModal = false">취소</button>
+                  <button class="mp-modal-confirm mp-modal-confirm--save" :disabled="editSaving" @click="saveProfile">
+                    {{ editSaving ? '저장 중...' : '저장' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Transition>
+
+          <Transition name="mp-modal">
+            <div v-if="showPwModal" class="mp-modal-overlay" @click.self="showPwModal = false">
+              <div class="mp-modal">
+                <h3 class="mp-modal-title">비밀번호 변경</h3>
+
+                <div v-if="pwSuccess" class="mp-pw-success">비밀번호가 변경되었습니다.</div>
+                <div v-else class="mp-form">
+                  <label class="mp-form-label">현재 비밀번호</label>
+                  <input v-model="pwCur" class="mp-form-input" type="password" @keyup.enter="savePassword" />
+
+                  <label class="mp-form-label">새 비밀번호</label>
+                  <input
+                    v-model="pwNew"
+                    class="mp-form-input"
+                    type="password"
+                    placeholder="8자 이상"
+                    @keyup.enter="savePassword"
+                  />
+
+                  <label class="mp-form-label">새 비밀번호 확인</label>
+                  <input v-model="pwConfirm" class="mp-form-input" type="password" @keyup.enter="savePassword" />
+                </div>
+
+                <span v-if="pwError" class="mp-form-err">{{ pwError }}</span>
+
+                <div class="mp-modal-actions">
+                  <template v-if="pwSuccess">
+                    <button class="mp-modal-confirm mp-modal-confirm--save" @click="showPwModal = false">확인</button>
+                  </template>
+                  <template v-else>
+                    <button class="mp-modal-cancel" @click="showPwModal = false">취소</button>
+                    <button class="mp-modal-confirm mp-modal-confirm--save" :disabled="pwSaving" @click="savePassword">
+                      {{ pwSaving ? '변경 중...' : '변경' }}
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </Transition>
         </section>
 
         <div v-if="showWithdrawModal" class="mp-modal-overlay" @click.self="showWithdrawModal = false">
@@ -210,7 +329,7 @@ function fmtDate(value: string) {
                   :disabled="scenarioStore.loading"
                   @click="handlePersonaAnalysis(item.analysis_cache_id)"
                 >
-                  {{ scenarioStore.loading ? '분석 준비 중...' : '시장 참여자 분석' }}
+                  {{ scenarioStore.loading ? '분석 준비 중...' : '참여자 분석' }}
                 </button>
                 <button
                   class="mp-download-btn"
@@ -232,9 +351,7 @@ function fmtDate(value: string) {
               >
                 이전
               </button>
-              <span class="mp-page-state">
-                {{ reportStore.reportPage }} / {{ totalReportPages }}
-              </span>
+              <span class="mp-page-state">{{ reportStore.reportPage }} / {{ totalReportPages }}</span>
               <button
                 class="mp-page-btn"
                 :disabled="reportStore.reportPage >= totalReportPages || reportStore.listLoading"
@@ -277,26 +394,46 @@ function fmtDate(value: string) {
 .mp-nick-row { display: flex; align-items: center; gap: 8px; }
 .mp-nick { font-size: 18px; font-weight: 700; color: #1e293b; }
 .mp-email { font-size: 14px; color: #64748b; margin-top: 2px; word-break: break-word; }
-.mp-logout,
+.mp-birthdate { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+.mp-profile-actions { display: flex; flex-direction: column; gap: 6px; margin-left: auto; }
 .mp-refresh-btn,
-.mp-nick-edit-btn,
-.mp-nick-cancel { border: 1px solid #e2e8f0; background: #fff; color: #64748b; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all .15s; }
-.mp-logout { padding: 7px 14px; font-size: 14px; }
-.mp-refresh-btn { margin-top: 24px; padding: 7px 12px; font-size: 13px; }
-.mp-nick-edit-btn { padding: 2px 8px; font-size: 12px; }
-.mp-logout:hover,
+.mp-nick-edit-btn {
+  padding: 5px 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .12s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.mp-refresh-btn { margin-top: 24px; padding: 7px 12px; }
 .mp-refresh-btn:hover:not(:disabled),
-.mp-nick-edit-btn:hover,
-.mp-nick-cancel:hover { border-color: #cbd5e1; color: #1e293b; }
+.mp-nick-edit-btn:hover { border-color: #cbd5e1; color: #1e293b; }
 .mp-refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
-.mp-nick-edit { display: flex; flex-direction: column; gap: 6px; }
-.mp-nick-input { border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; font-size: 16px; font-weight: 700; color: #1e293b; font-family: inherit; width: min(220px, 100%); }
-.mp-nick-input:focus { outline: none; border-color: #94a3b8; }
-.mp-nick-btns { display: flex; gap: 6px; }
-.mp-nick-save { padding: 5px 12px; background: #1e293b; color: #fff; border: 0; border-radius: 5px; font-size: 13px; cursor: pointer; font-family: inherit; }
-.mp-nick-save:disabled { opacity: .5; cursor: not-allowed; }
-.mp-nick-cancel { padding: 5px 12px; font-size: 13px; }
-.mp-nick-err { font-size: 12px; color: #dc2626; }
+.mp-form { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.mp-form-label { font-size: 12px; font-weight: 600; color: #64748b; margin-top: 8px; }
+.mp-form-input {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #1e293b;
+  font-family: inherit;
+  transition: border-color .12s;
+}
+.mp-form-input:focus { outline: none; border-color: #94a3b8; }
+.mp-form-input--readonly { background: #f8fafc; color: #94a3b8; cursor: default; }
+.mp-form-err { font-size: 12px; color: #ef4444; display: block; margin-bottom: 8px; }
+.mp-pw-success { text-align: center; padding: 24px 0; font-size: 15px; font-weight: 600; color: #16a34a; }
+.mp-modal-confirm--save { background: #1e293b; }
+.mp-modal-confirm--save:hover:not(:disabled) { background: #334155; }
+.mp-modal-enter-active, .mp-modal-leave-active { transition: opacity .15s; }
+.mp-modal-enter-from, .mp-modal-leave-to { opacity: 0; }
+.mp-modal-enter-active .mp-modal, .mp-modal-leave-active .mp-modal { transition: transform .15s; }
+.mp-modal-enter-from .mp-modal, .mp-modal-leave-to .mp-modal { transform: scale(0.96) translateY(-6px); }
 .mp-withdraw-row { padding: 12px 28px 20px; border-top: 1px solid #f1f5f9; }
 .mp-withdraw-btn { background: none; border: 0; color: #94a3b8; font-size: 12px; cursor: pointer; text-decoration: underline; font-family: inherit; }
 .mp-withdraw-btn:hover { color: #dc2626; }
@@ -346,7 +483,8 @@ function fmtDate(value: string) {
 
 @media (max-width: 720px) {
   .mp-main { padding: 24px 14px; }
-  .mp-profile-card { align-items: flex-start; }
+  .mp-profile-card { align-items: flex-start; flex-wrap: wrap; }
+  .mp-profile-actions { width: 100%; margin-left: 68px; }
   .mp-report-actions { grid-template-columns: 1fr; }
 }
 </style>

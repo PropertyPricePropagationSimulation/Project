@@ -16,9 +16,10 @@ export interface TokenResponse {
 }
 
 export interface MemberResponse {
-  userId:   number
-  email:    string
-  nickname: string
+  userId:    number
+  email:     string
+  nickname:  string
+  birthDate: string | null
 }
 
 export async function login(email: string, password: string): Promise<TokenResponse> {
@@ -54,8 +55,20 @@ export async function checkEmail(email: string): Promise<boolean> {
 }
 
 // 인증 필요 — 공유 http 인스턴스 사용 (토큰 자동 첨부 + 만료 시 자동 갱신)
-export async function updateMember(userId: number, nickname: string): Promise<void> {
-  await http.put(`/members/${userId}`, { nickname })
+export async function updateMember(
+  userId: number,
+  payload: { nickname: string; birthDate: string | null },
+): Promise<void> {
+  await http.put(`/members/${userId}`, payload)
+}
+
+export async function changePassword(
+  userId: number,
+  curPassword: string,
+  newPassword: string,
+  confirmPassword: string,
+): Promise<void> {
+  await http.patch(`/members/${userId}/password`, { curPassword, newPassword, confirmPassword })
 }
 
 export async function withdrawMember(userId: number): Promise<void> {
