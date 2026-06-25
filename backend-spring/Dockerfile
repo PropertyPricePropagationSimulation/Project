@@ -1,5 +1,5 @@
 # ── 빌드 스테이지 ────────────────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /build
 
@@ -12,7 +12,7 @@ COPY backend/src ./src
 RUN mvn package -DskipTests -q
 
 # ── 실행 스테이지 ────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 # 한글 폰트 설치 (PDF 생성에 필요)
 RUN apt-get update \

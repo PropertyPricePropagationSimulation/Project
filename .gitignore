@@ -12,6 +12,7 @@ __pycache__/
 *.zip
 
 *.json
+!frontend/package-lock.json
 !frontend/public/geojson/seoul.json
 !frontend/public/geojson/gyeonggi.json
 frontend/scripts/

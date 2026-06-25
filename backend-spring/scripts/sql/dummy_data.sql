@@ -16,6 +16,8 @@ TRUNCATE TABLE report_history;
 TRUNCATE TABLE analysis_cache;
 TRUNCATE TABLE member;
 SET FOREIGN_KEY_CHECKS = 1;
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 -- ── 1. 회원 (12명: 관리자 1 + 일반 11) ─────────────────────────
 -- 비밀번호 해시: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy = "password"

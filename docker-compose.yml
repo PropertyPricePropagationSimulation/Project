@@ -12,7 +12,7 @@ services:
       MYSQL_USER: ${DB_USERNAME:-estateflow}
       MYSQL_PASSWORD: ${DB_PASSWORD:-estateflow}
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       # 초기화 스크립트 (volume이 비어있을 때만 실행됨)

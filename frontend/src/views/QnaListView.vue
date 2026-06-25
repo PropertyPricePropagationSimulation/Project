@@ -20,7 +20,9 @@ const myId = () => {
   const token = authStore.accessToken
   if (!token) return null
   try {
-    const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
     return Number(JSON.parse(atob(b64)).sub)
   } catch { return null }
 }
