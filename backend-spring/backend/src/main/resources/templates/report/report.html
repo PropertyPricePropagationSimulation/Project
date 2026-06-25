@@ -3,47 +3,200 @@
 <head>
   <meta charset="UTF-8" />
   <style>
-    @page { size: A4; margin: 0; }
+    @page { size: A4; margin: 22mm 14mm 18mm; }
+
     * { box-sizing: border-box; }
-    body { color: #172033; font-family: 'Noto Sans KR', sans-serif; font-size: 10pt; line-height: 1.65; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      color: #172033;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 9.6pt;
+      line-height: 1.62;
+      overflow-wrap: break-word;
+      word-break: keep-all;
+    }
     h1, h2, h3, p { margin: 0; }
-    .cover { background: #101827; color: #f8fafc; height: 297mm; padding: 38mm 20mm 28mm; page-break-after: always; }
-    .cover-brand { color: #3ab8f2; font-size: 15pt; font-weight: bold; letter-spacing: .16em; }
-    .cover-subtitle { color: #a7b7cf; font-size: 13pt; letter-spacing: .12em; margin-top: 10mm; }
-    .cover-title { border-left: 3mm solid #3ab8f2; font-size: 29pt; line-height: 1.42; margin-top: 20mm; padding-left: 14mm; word-break: keep-all; }
-    .cover-meta { color: #a7b7cf; font-size: 10.5pt; line-height: 2.25; margin: 23mm 0 32mm 17mm; }
-    .cover-stats { border-collapse: collapse; table-layout: fixed; width: 100%; }
-    .cover-stats td { border: 1px solid #3b475c; height: 35mm; padding: 7mm 5mm; text-align: center; vertical-align: middle; width: 33.33%; }
-    .cover-stat-label { color: #a7b7cf; font-size: 9.5pt; }
-    .cover-stat-value { color: #3ab8f2; font-size: 21pt; font-weight: bold; line-height: 1.4; margin-top: 4mm; word-break: keep-all; }
-    .cover-stat-value.rose { color: #ff4a6e; }
-    .cover-stat-value.blue { color: #619eff; }
-    .cover-stat-value.region { color: #f8fafc; font-size: 15pt; }
-    .report-content { padding: 17mm 15mm 18mm; }
-    .header { border-bottom: 2px solid #1f5eff; padding-bottom: 12px; margin-bottom: 18px; }
-    .eyebrow { color: #1f5eff; font-size: 8.5pt; font-weight: bold; letter-spacing: .08em; }
-    h1 { font-size: 22pt; line-height: 1.35; margin-top: 4px; }
-    .created-at { color: #637083; font-size: 8.5pt; margin-top: 5px; }
-    .kpis { border-collapse: separate; border-spacing: 8px 0; margin: 0 -8px 18px; width: calc(100% + 16px); break-inside: avoid; page-break-inside: avoid; }
-    .kpis tr { break-inside: avoid; page-break-inside: avoid; }
-    .kpis td { background: #f3f6fb; border-radius: 6px; padding: 11px 12px; vertical-align: top; width: 25%; }
-    .kpi-label { color: #637083; font-size: 8pt; }
-    .kpi-value { color: #172033; font-size: 17pt; font-weight: bold; line-height: 1.3; margin-top: 2px; }
-    .positive { color: #1677d2; }
-    .negative { color: #d64545; }
-    .section { margin-top: 20px; }
-    h2 { border-left: 4px solid #1f5eff; font-size: 14pt; line-height: 1.35; padding-left: 8px; margin-bottom: 9px; break-after: avoid-page; page-break-after: avoid; }
-    h3 { color: #263b63; font-size: 11pt; margin-bottom: 4px; }
-    .summary { background: #f7f9fd; border: 1px solid #dfe7f5; border-radius: 6px; padding: 13px 15px; break-inside: avoid; page-break-inside: avoid; }
-    .content-block { border-bottom: 1px solid #e7ecf3; padding: 0 0 12px; margin: 0 0 12px; break-inside: avoid; page-break-inside: avoid; }
-    .regional { break-inside: avoid; page-break-inside: avoid; border: 1px solid #dfe7f5; border-radius: 6px; margin-bottom: 12px; padding: 13px 15px; }
-    .reason { color: #637083; font-size: 9pt; margin-bottom: 8px; }
-    .label { color: #263b63; font-weight: bold; }
-    ul { margin: 6px 0 0; padding-left: 18px; }
+    table { border-collapse: collapse; }
+
+    .cover {
+      background: #101827;
+      border-radius: 6px;
+      color: #f8fafc;
+      height: 257mm;
+      padding: 18mm 14mm 12mm;
+      page-break-after: always;
+      overflow: hidden;
+    }
+    .cover-brand { color: #4fc3ff; font-size: 14pt; font-weight: bold; letter-spacing: .15em; }
+    .cover-subtitle { color: #a7b7cf; font-size: 10pt; font-weight: bold; letter-spacing: .16em; margin-top: 8mm; }
+    .cover-title {
+      border-left: 2.4mm solid #4fc3ff;
+      font-size: 22pt;
+      line-height: 1.34;
+      margin-top: 12mm;
+      padding-left: 8mm;
+      word-break: keep-all;
+    }
+    .cover-meta {
+      border-top: 1px solid #334155;
+      border-bottom: 1px solid #334155;
+      color: #cbd5e1;
+      font-size: 9.5pt;
+      line-height: 1.8;
+      margin: 12mm 0 10mm;
+      padding: 5mm 0;
+    }
+    .cover-stats { border-collapse: separate; border-spacing: 3mm; margin: 0 -3mm; table-layout: fixed; width: calc(100% + 6mm); }
+    .cover-stats td {
+      border: 1px solid #3b475c;
+      background: rgba(255,255,255,.035);
+      padding: 4mm 3mm;
+      text-align: center;
+      vertical-align: middle;
+      width: 33.33%;
+    }
+    .cover-stats td.rise-card { background: rgba(255,90,118,.13); border-color: rgba(255,90,118,.68); }
+    .cover-stats td.fall-card { background: rgba(99,168,255,.13); border-color: rgba(99,168,255,.68); }
+    .cover-stats td.neutral-card { background: rgba(226,232,240,.08); border-color: rgba(226,232,240,.42); }
+    .cover-stats td.focus-card { background: rgba(79,195,255,.12); border-color: rgba(79,195,255,.65); }
+    .cover-stat-label { color: #a7b7cf; font-size: 8.2pt; font-weight: bold; letter-spacing: .04em; }
+    .cover-stat-value { color: #4fc3ff; font-size: 15.5pt; font-weight: bold; line-height: 1.25; margin-top: 2mm; word-break: keep-all; }
+    .cover-stat-value.rise { color: #ff5a76; }
+    .cover-stat-value.fall { color: #63a8ff; }
+    .cover-stat-value.neutral { color: #e2e8f0; }
+    .cover-stat-value.region { color: #f8fafc; font-size: 10.5pt; }
+    .cover-note { color: #64748b; font-size: 8pt; margin-top: 6mm; text-align: right; }
+
+    .report-content { padding-top: 2mm; }
+    .header { border-bottom: 2px solid #1f5eff; margin-bottom: 16px; padding-bottom: 10px; }
+    .eyebrow { color: #1f5eff; font-size: 8pt; font-weight: bold; letter-spacing: .08em; }
+    .header h1 { color: #0f172a; font-size: 19pt; line-height: 1.32; margin-top: 3px; }
+    .created-at { color: #64748b; font-size: 8.2pt; margin-top: 4px; }
+
+    .highlight-grid { border-collapse: separate; border-spacing: 5px; margin: 0 -5px 16px; table-layout: fixed; width: calc(100% + 10px); page-break-inside: avoid; }
+    .highlight-grid td { background: #f3f6fb; border: 1px solid #e2e8f0; border-radius: 6px; padding: 9px 10px; vertical-align: top; width: 25%; }
+    .highlight-grid td.rise-card { background: #fff1f4; border-color: #ffc2cc; }
+    .highlight-grid td.fall-card { background: #eff6ff; border-color: #bfdbfe; }
+    .highlight-grid td.neutral-card { background: #f8fafc; border-color: #cbd5e1; }
+    .highlight-grid td.focus-card { background: #eef7ff; border-color: #9fd3ff; }
+    .metric-label { color: #64748b; font-size: 7.8pt; font-weight: bold; letter-spacing: .02em; }
+    .metric-value { color: #172033; font-size: 15pt; font-weight: bold; line-height: 1.25; margin-top: 3px; }
+    .metric-value.rise { color: #d9365b; }
+    .metric-value.fall { color: #1f6bd6; }
+    .metric-value.neutral { color: #334155; }
+
+    .section { margin-top: 19px; }
+    h2 {
+      border-left: 4px solid #1f5eff;
+      color: #0f172a;
+      font-size: 13pt;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      padding-left: 8px;
+      page-break-after: avoid;
+    }
+    h3 { color: #263b63; font-size: 10.4pt; line-height: 1.45; margin-bottom: 4px; }
+    .summary {
+      background: #f7f9fd;
+      border: 1px solid #dbe5f4;
+      border-left: 4px solid #1f5eff;
+      border-radius: 6px;
+      color: #1f2937;
+      font-size: 10pt;
+      line-height: 1.72;
+      padding: 11px 13px;
+      page-break-inside: avoid;
+    }
+    .highlight-note {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-left: 4px solid #f97316;
+      border-radius: 6px;
+      color: #7c2d12;
+      font-size: 9.2pt;
+      font-weight: bold;
+      margin-top: 9px;
+      padding: 8px 11px;
+      page-break-inside: avoid;
+    }
+    .hl-market {
+      background: #fff7ed;
+      border-radius: 3px;
+      color: #9a3412;
+      font-weight: bold;
+      padding: 0 2px;
+    }
+    .hl-time {
+      background: #eef7ff;
+      border-radius: 3px;
+      color: #1d4ed8;
+      font-weight: bold;
+      padding: 0 2px;
+    }
+    .hl-rise {
+      background: #fff1f4;
+      border-radius: 3px;
+      color: #be123c;
+      font-weight: bold;
+      padding: 0 2px;
+    }
+    .hl-fall {
+      background: #eff6ff;
+      border-radius: 3px;
+      color: #1e40af;
+      font-weight: bold;
+      padding: 0 2px;
+    }
+    .hl-number {
+      background: #f8fafc;
+      border-bottom: 1px solid #94a3b8;
+      color: #0f172a;
+      font-weight: bold;
+      padding: 0 1px;
+    }
+    .content-block {
+      border-bottom: 1px solid #e7ecf3;
+      margin: 0 0 10px;
+      padding: 0 0 10px;
+    }
+    .content-block p { color: #334155; }
+    .regional {
+      border: 1px solid #dfe7f5;
+      border-radius: 7px;
+      margin-bottom: 10px;
+      padding: 11px 13px;
+      page-break-inside: auto;
+    }
+    .regional-header { border-bottom: 1px solid #edf2f7; margin-bottom: 7px; padding-bottom: 6px; page-break-after: avoid; }
+    .region-badge {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      color: #1d4ed8;
+      display: inline-block;
+      font-size: 8pt;
+      font-weight: bold;
+      margin-bottom: 5px;
+      padding: 2px 8px;
+    }
+    .reason { color: #64748b; font-size: 8.5pt; line-height: 1.55; }
+    .analysis-line { color: #334155; margin-top: 6px; }
+    .label { color: #1e3a8a; font-weight: bold; }
+    ul { margin: 6px 0 0; padding-left: 17px; }
     li { margin-bottom: 3px; }
-    .cautions { background: #fff8e8; border-left: 4px solid #e7a924; padding: 10px 14px; break-inside: avoid; page-break-inside: avoid; }
+    .evidence { background: #f8fafc; border-radius: 5px; margin-top: 7px; padding: 7px 9px; }
+    .evidence li { color: #475569; font-size: 8.8pt; }
+    .cautions {
+      background: #fff8e8;
+      border: 1px solid #f4d58a;
+      border-left: 4px solid #e7a924;
+      border-radius: 6px;
+      padding: 10px 13px;
+      page-break-inside: auto;
+    }
+    .cautions li { color: #62420f; margin-bottom: 5px; }
     .content-block p, .regional p, .summary, .cautions { orphans: 3; widows: 3; }
-    .footer { color: #8a95a5; font-size: 8pt; margin-top: 22px; text-align: right; }
+    .footer { border-top: 1px solid #e2e8f0; color: #8a95a5; font-size: 8pt; margin-top: 18px; padding-top: 8px; text-align: right; }
   </style>
 </head>
 <body>
@@ -52,67 +205,78 @@
     <p class="cover-subtitle">ANALYSIS REPORT</p>
     <h1 class="cover-title" th:text="${report.title}">부동산 시장 반응 분석 리포트</h1>
     <div class="cover-meta">
-      <p th:text="|생성 시각 : ${report.createdAt}|">생성 시각 : 2026-06-25</p>
+      <p th:text="|생성일 : ${report.createdAt}|">생성일 : 2026-06-25</p>
       <p th:text="|분석 기간 : ${report.windowMonths}개월|">분석 기간 : 6개월</p>
-      <p th:text="|분석 대상 : ${report.regionCount}개 지역|">분석 대상 : 48개 지역</p>
+      <p th:text="|분석 지역 : ${report.regionCount}개 지역|">분석 지역 : 48개 지역</p>
     </div>
+
     <table class="cover-stats" role="presentation">
       <tr>
-        <td><p class="cover-stat-label">분석 지역 수</p><p class="cover-stat-value" th:text="|${report.regionCount}개 지역|">48개 지역</p></td>
-        <td><p class="cover-stat-label">가격 상승 지역</p><p class="cover-stat-value rose" th:text="|${report.risingRegionCount}개 지역|">39개 지역</p></td>
-        <td><p class="cover-stat-label">가격 하락 지역</p><p class="cover-stat-value blue" th:text="|${report.fallingRegionCount}개 지역|">9개 지역</p></td>
+        <td class="focus-card"><p class="cover-stat-label">분석 지역</p><p class="cover-stat-value" th:text="|${report.regionCount}개|">48개</p></td>
+        <td class="rise-card"><p class="cover-stat-label">상승 지역</p><p class="cover-stat-value rise" th:text="|${report.risingRegionCount}개|">39개</p></td>
+        <td class="fall-card"><p class="cover-stat-label">하락 지역</p><p class="cover-stat-value fall" th:text="|${report.fallingRegionCount}개|">9개</p></td>
       </tr>
       <tr>
-        <td><p class="cover-stat-label">평균 가격 변화율</p><p class="cover-stat-value rose" th:text="${report.averagePriceChange}">+7.05%</p></td>
-        <td><p class="cover-stat-label">평균 거래량 변화율</p><p class="cover-stat-value rose" th:text="${report.averageVolumeChange}">+160.83%</p></td>
-        <td><p class="cover-stat-label">최고 상승 지역</p><p class="cover-stat-value region" th:text="${report.topRiseRegion}">서울 용산구</p><p class="cover-stat-value region" th:text="|(${report.topRisePercent})|">(+26.04%)</p></td>
+        <td th:class="|${report.averagePriceChangeClass}-card|"><p class="cover-stat-label">평균 가격 변화</p><p th:class="|cover-stat-value ${report.averagePriceChangeClass}|" th:text="${report.averagePriceChange}">+7.05%</p></td>
+        <td th:class="|${report.averageVolumeChangeClass}-card|"><p class="cover-stat-label">평균 거래량 변화</p><p th:class="|cover-stat-value ${report.averageVolumeChangeClass}|" th:text="${report.averageVolumeChange}">+160.83%</p></td>
+        <td class="focus-card"><p class="cover-stat-label">최고 상승 지역</p><p class="cover-stat-value region" th:text="${report.topRiseRegion}">서울 송파구</p><p class="cover-stat-value region" th:text="|(${report.topRisePercent})|">(+26.04%)</p></td>
       </tr>
     </table>
+    <p class="cover-note">EstateFlow Report</p>
   </section>
 
   <main class="report-content">
-  <header class="header">
-    <p class="eyebrow">ESTATEFLOW · ANALYSIS REPORT</p>
-    <h1 th:text="${report.title}">부동산 분석 리포트</h1>
-    <p class="created-at" th:text="|생성 시각: ${report.createdAt}|">생성 시각</p>
-  </header>
+    <header class="header">
+      <p class="eyebrow">ESTATEFLOW - ANALYSIS REPORT</p>
+      <h1 th:text="${report.title}">부동산 분석 리포트</h1>
+      <p class="created-at" th:text="|생성일: ${report.createdAt}|">생성일</p>
+    </header>
 
-  <table class="kpis" role="presentation"><tr>
-    <td><p class="kpi-label">분석 기간</p><p class="kpi-value" th:text="|${report.windowMonths}개월|">3개월</p></td>
-    <td><p class="kpi-label">분석 지역</p><p class="kpi-value" th:text="${report.regionCount}">0</p></td>
-    <td><p class="kpi-label">상승 지역</p><p class="kpi-value positive" th:text="${report.risingRegionCount}">0</p></td>
-    <td><p class="kpi-label">하락 지역</p><p class="kpi-value negative" th:text="${report.fallingRegionCount}">0</p></td>
-  </tr></table>
+    <table class="highlight-grid" role="presentation">
+      <tr>
+        <td class="focus-card"><p class="metric-label">분석 기간</p><p class="metric-value" th:text="|${report.windowMonths}개월|">3개월</p></td>
+        <td class="focus-card"><p class="metric-label">분석 지역</p><p class="metric-value" th:text="|${report.regionCount}개|">0개</p></td>
+        <td th:class="|${report.averagePriceChangeClass}-card|"><p class="metric-label">평균 가격 변화</p><p th:class="|metric-value ${report.averagePriceChangeClass}|" th:text="${report.averagePriceChange}">-</p></td>
+        <td th:class="|${report.averageVolumeChangeClass}-card|"><p class="metric-label">평균 거래량 변화</p><p th:class="|metric-value ${report.averageVolumeChangeClass}|" th:text="${report.averageVolumeChange}">-</p></td>
+      </tr>
+    </table>
 
-  <section class="section">
-    <h2>핵심 요약</h2>
-    <p class="summary" th:text="${report.summary}">요약</p>
-  </section>
+    <section class="section">
+      <h2>핵심 요약</h2>
+      <p class="summary" th:utext="${report.highlightedSummary}">요약</p>
+      <p class="highlight-note" th:text="|핵심 지표: 평균 가격 변화 ${report.averagePriceChange}, 평균 거래량 변화 ${report.averageVolumeChange}, 최고 상승 지역 ${report.topRiseRegion} ${report.topRisePercent}|">
+        핵심 지표
+      </p>
+    </section>
 
-  <section class="section" th:if="${!#lists.isEmpty(report.sections)}">
-    <h2>주요 분석</h2>
-    <article class="content-block" th:each="section : ${report.sections}">
-      <h3 th:if="${!#strings.isEmpty(section.title)}" th:text="${section.title}">제목</h3>
-      <p th:text="${section.content}">내용</p>
-    </article>
-  </section>
+    <section class="section" th:if="${!#lists.isEmpty(report.sections)}">
+      <h2>주요 분석</h2>
+      <article class="content-block" th:each="section : ${report.sections}">
+        <h3 th:if="${!#strings.isEmpty(section.title)}" th:text="${section.title}">제목</h3>
+        <p th:utext="${section.highlightedContent}">내용</p>
+      </article>
+    </section>
 
-  <section class="section" th:if="${!#lists.isEmpty(report.regionalTrends)}">
-    <h2>지역별 분석</h2>
-    <article class="regional" th:each="region : ${report.regionalTrends}">
-      <h3 th:text="${region.regionName}">지역명</h3>
-      <p class="reason" th:text="|선정 이유 · ${region.selectionReason}|">선정 이유</p>
-      <p th:text="${region.trend}">추세</p>
-      <p th:if="${!#strings.isEmpty(region.comparativeInterpretation)}"><span class="label">비교 해석 · </span><span th:text="${region.comparativeInterpretation}">비교 해석</span></p>
-      <ul th:if="${!#lists.isEmpty(region.evidence)}"><li th:each="evidence : ${region.evidence}" th:text="${evidence}">근거</li></ul>
-    </article>
-  </section>
+    <section class="section" th:if="${!#lists.isEmpty(report.regionalTrends)}">
+      <h2>지역별 분석</h2>
+      <article class="regional" th:each="region : ${report.regionalTrends}">
+        <div class="regional-header">
+          <span class="region-badge" th:text="${region.regionName}">지역명</span>
+          <p class="reason"><span>선정 이유 - </span><span th:utext="${region.highlightedSelectionReason}">선정 이유</span></p>
+        </div>
+        <p class="analysis-line"><span class="label">추세 - </span><span th:utext="${region.highlightedTrend}">추세</span></p>
+        <p class="analysis-line" th:if="${!#strings.isEmpty(region.comparativeInterpretation)}"><span class="label">비교 해석 - </span><span th:utext="${region.highlightedComparativeInterpretation}">비교 해석</span></p>
+        <div class="evidence" th:if="${!#lists.isEmpty(region.highlightedEvidence)}">
+          <ul><li th:each="evidence : ${region.highlightedEvidence}" th:utext="${evidence}">근거</li></ul>
+        </div>
+      </article>
+    </section>
 
-  <section class="section" th:if="${!#lists.isEmpty(report.cautions)}">
-    <h2>해석 시 유의사항</h2>
-    <div class="cautions"><ul><li th:each="caution : ${report.cautions}" th:text="${caution}">주의사항</li></ul></div>
-  </section>
-  <p class="footer">EstateFlow Report</p>
+    <section class="section" th:if="${!#lists.isEmpty(report.cautions)}">
+      <h2>해석 시 유의사항</h2>
+      <div class="cautions"><ul><li th:each="caution : ${report.cautions}" th:utext="${caution}">주의사항</li></ul></div>
+    </section>
+    <p class="footer">EstateFlow Report</p>
   </main>
 </body>
 </html>
