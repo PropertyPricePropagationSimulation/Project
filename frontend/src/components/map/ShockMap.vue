@@ -100,7 +100,7 @@ function pushMapData() {
       properties: {
         ...p,
         value: v,
-        height: region ? Math.max(100, 1500 + Math.sign(v) * Math.max(0, Math.abs(v) - 5) * 200) : 0,
+        height: region ? Math.max(20, 300 + Math.sign(v) * Math.max(0, Math.abs(v) - 5) * 60) : 0,
         base: 0,
         fillColor: region ? valToColor(v) : NODATA,
         active,
