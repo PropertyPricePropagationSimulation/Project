@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import AppFooter from '@/components/common/AppFooter.vue'
@@ -36,6 +36,10 @@ const pwSuccess = ref(false)
 const showWithdrawModal = ref(false)
 const withdrawing = ref(false)
 
+const totalReportPages = computed(() =>
+  Math.max(1, Math.ceil(reportStore.reportTotalCount / reportStore.reportPageSize)),
+)
+
 onMounted(async () => {
   if (!authStore.isLoggedIn || !authStore.accessToken) {
     router.push('/login')
@@ -48,6 +52,7 @@ onMounted(async () => {
     if (userId) {
       member.value = await getMember(userId, authStore.accessToken)
     }
+    await reportStore.fetchMyReports()
   } finally {
     loading.value = false
   }
@@ -114,11 +119,9 @@ async function savePassword() {
 
 async function handleWithdraw() {
   withdrawing.value = true
-
   try {
     const userId = member.value?.userId ?? parseUserId(authStore.accessToken ?? '')
     if (!userId) return
-
     await withdrawMember(userId)
     await authStore.logout()
     router.push('/')
@@ -129,23 +132,18 @@ async function handleWithdraw() {
   }
 }
 
-async function handlePersonaAnalysis() {
-  const analysisCacheId = reportStore.getAnalysisCacheId()
-  if (!analysisCacheId) return
-
+async function handlePersonaAnalysis(analysisCacheId: number) {
   const scenario = await scenarioStore.createFromAnalysisCache(analysisCacheId)
-  if (scenario) {
-    router.push(`/scenarios/${scenario.scenario_id}`)
-  }
+  if (scenario) router.push(`/scenarios/${scenario.scenario_id}`)
+}
+
+async function handleReportDelete(reportId: string) {
+  if (!window.confirm('이 리포트를 목록에서 삭제할까요?')) return
+  await reportStore.remove(reportId)
 }
 
 function fmtDate(value: string) {
   return value?.slice(0, 10) ?? ''
-}
-
-function signed(value: number | undefined) {
-  if (value === undefined) return '-'
-  return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`
 }
 </script>
 
@@ -259,9 +257,8 @@ function signed(value: number | undefined) {
           <div class="mp-modal">
             <h3 class="mp-modal-title">정말 탈퇴하시겠습니까?</h3>
             <p class="mp-modal-desc">
-              탈퇴 후에는 다시 로그인할 수 없으며, 작성하신 데이터 일부는 탈퇴한 사용자 정보로만 남을 수 있습니다.
+              탈퇴 후에는 다시 로그인할 수 없으며, 작성한 데이터는 서비스 운영 정책에 따라 처리됩니다.
             </p>
-
             <div class="mp-modal-actions">
               <button class="mp-modal-cancel" @click="showWithdrawModal = false">취소</button>
               <button class="mp-modal-confirm" :disabled="withdrawing" @click="handleWithdraw">
@@ -274,82 +271,83 @@ function signed(value: number | undefined) {
         <section class="mp-section">
           <div class="mp-section-hdr">
             <h2 class="mp-section-title">AI 리포트</h2>
+            <button class="mp-refresh-btn" :disabled="reportStore.listLoading" @click="reportStore.fetchMyReports()">
+              새로고침
+            </button>
           </div>
 
-          <div v-if="reportStore.report" class="mp-report-card">
-            <div class="mp-report-head">
-              <div>
-                <span class="mp-report-kicker">AI REPORT</span>
-                <p class="mp-report-title">{{ reportStore.report.draft.title }}</p>
+          <div v-if="reportStore.listLoading" class="mp-loading">리포트를 불러오는 중입니다...</div>
+
+          <div v-else-if="reportStore.reports.length > 0" class="mp-report-list">
+            <article v-for="item in reportStore.reports" :key="item.report_id" class="mp-report-card">
+              <div class="mp-report-head">
+                <div>
+                  <span class="mp-report-kicker">AI REPORT</span>
+                  <p class="mp-report-title">{{ item.title }}</p>
+                </div>
+                <button
+                  class="mp-delete-btn mp-delete-btn-sm"
+                  :disabled="reportStore.loading"
+                  @click="handleReportDelete(item.report_id)"
+                >
+                  삭제
+                </button>
               </div>
 
-              <span class="mp-report-status" :class="{ fallback: reportStore.report.status === 'DRAFT_FALLBACK' }">
-                {{ reportStore.report.status === 'COMPLETED' ? '생성 완료' : '초안' }}
-              </span>
-            </div>
-
-            <p class="mp-report-summary">
-              {{ reportStore.report.ai_enhancement?.executive_summary?.trim() || reportStore.report.draft.overview }}
-            </p>
-
-            <div v-if="reportStore.report.analysis_result?.summary" class="mp-report-metrics">
-              <div class="mp-metric">
-                <span>분석 지역</span>
-                <strong>{{ reportStore.report.analysis_result.summary.region_count ?? '-' }}곳</strong>
+              <div class="mp-report-meta">
+                생성일 {{ fmtDate(item.created_at) }} · 분석 캐시 #{{ item.analysis_cache_id }}
               </div>
 
-              <div class="mp-metric">
-                <span>상승 / 하락</span>
-                <strong>
-                  {{ reportStore.report.analysis_result.summary.rising_region_count ?? '-' }}
-                  /
-                  {{ reportStore.report.analysis_result.summary.falling_region_count ?? '-' }}
-                </strong>
+              <div class="mp-report-actions">
+                <button
+                  class="mp-persona-btn"
+                  :disabled="scenarioStore.loading"
+                  @click="handlePersonaAnalysis(item.analysis_cache_id)"
+                >
+                  {{ scenarioStore.loading ? '분석 준비 중...' : '시장 참여자 분석' }}
+                </button>
+                <button
+                  class="mp-download-btn"
+                  :disabled="reportStore.loading"
+                  @click="reportStore.download(item.report_id)"
+                >
+                  {{ reportStore.loading ? 'PDF 준비 중...' : 'PDF 다운로드' }}
+                </button>
               </div>
+            </article>
 
-              <div class="mp-metric">
-                <span>평균 가격 변화</span>
-                <strong :class="{ neg: (reportStore.report.analysis_result.summary.avg_price_change_after_window_pct ?? 0) < 0 }">
-                  {{ signed(reportStore.report.analysis_result.summary.avg_price_change_after_window_pct) }}
-                </strong>
-              </div>
-
-              <div class="mp-metric">
-                <span>평균 거래량 변화</span>
-                <strong :class="{ neg: (reportStore.report.analysis_result.summary.avg_volume_change_after_window_pct ?? 0) < 0 }">
-                  {{ signed(reportStore.report.analysis_result.summary.avg_volume_change_after_window_pct) }}
-                </strong>
-              </div>
-            </div>
-
-            <div class="mp-report-meta">생성일 {{ fmtDate(reportStore.report.created_at) }}</div>
-
-            <div class="mp-report-actions">
-              <button
-                class="mp-persona-btn"
-                :disabled="scenarioStore.loading || !reportStore.getAnalysisCacheId()"
-                @click="handlePersonaAnalysis"
-              >
-                {{ scenarioStore.loading ? '시장 참여자 관점 분석 준비 중...' : '시장 참여자 관점 분석' }}
-              </button>
-
-              <button class="mp-download-btn" :disabled="reportStore.loading" @click="reportStore.download()">
-                {{ reportStore.loading ? 'PDF 준비 중...' : 'PDF 다운로드' }}
-              </button>
-            </div>
-
-            <p v-if="!reportStore.getAnalysisCacheId()" class="mp-scenario-hint">
-              이 리포트에는 분석 연결 정보가 없어 시장 참여자 관점 분석을 바로 시작할 수 없습니다.
-            </p>
             <p v-if="scenarioStore.error" class="mp-scenario-hint err">{{ scenarioStore.error }}</p>
+
+            <div v-if="totalReportPages > 1" class="mp-report-pagination">
+              <button
+                class="mp-page-btn"
+                :disabled="reportStore.reportPage <= 1 || reportStore.listLoading"
+                @click="reportStore.fetchMyReports(reportStore.reportPage - 1)"
+              >
+                이전
+              </button>
+              <span class="mp-page-state">
+                {{ reportStore.reportPage }} / {{ totalReportPages }}
+              </span>
+              <button
+                class="mp-page-btn"
+                :disabled="reportStore.reportPage >= totalReportPages || reportStore.listLoading"
+                @click="reportStore.fetchMyReports(reportStore.reportPage + 1)"
+              >
+                다음
+              </button>
+            </div>
           </div>
 
           <div v-else class="mp-report-empty">
-            <div class="mp-empty-icon">📄</div>
+            <div class="mp-empty-icon">REPORT</div>
             <p>생성된 리포트가 없습니다.</p>
             <p class="mp-empty-sub">분석 페이지에서 이벤트를 선택하고 AI 리포트를 먼저 생성해 주세요.</p>
             <router-link to="/analysis" class="mp-go-analysis">분석 시작하기</router-link>
           </div>
+
+          <p v-if="reportStore.listError" class="mp-scenario-hint err">{{ reportStore.listError }}</p>
+          <p v-if="reportStore.error" class="mp-scenario-hint err">{{ reportStore.error }}</p>
         </section>
       </div>
     </main>
@@ -361,42 +359,15 @@ function signed(value: number | undefined) {
 <style scoped>
 .mp { min-height: 100vh; display: flex; flex-direction: column; background: #f8fafc; }
 .mp-main { flex: 1; padding: 40px 24px; }
-.mp-inner { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
-
+.mp-inner { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
 .mp-section { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
-.mp-section-hdr { display: flex; justify-content: space-between; align-items: center; }
-.mp-section-title { font-size: 16px; font-weight: 700; color: #1e293b; }
-
-.mp-loading { padding: 28px; color: #94a3b8; font-size: 14px; }
+.mp-section-title { font-size: 16px; font-weight: 700; color: #1e293b; padding: 24px 28px 0; }
+.mp-section-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 28px; }
+.mp-section-hdr .mp-section-title { padding: 24px 0 0; }
+.mp-loading { padding: 28px; color: #64748b; font-size: 14px; }
 .mp-profile-card { display: flex; align-items: center; gap: 16px; padding: 28px; }
-.mp-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: #1e293b;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.mp-profile-info { flex: 1; }
-.mp-nick { font-size: 18px; font-weight: 700; color: #1e293b; }
-.mp-email { font-size: 14px; color: #64748b; margin-top: 2px; }
-.mp-logout {
-  padding: 7px 14px;
-  border-radius: 6px;
-  background: none;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all .15s;
-  font-family: inherit;
-}
-.mp-logout:hover { border-color: #cbd5e1; color: #1e293b; }
+.mp-avatar { width: 52px; height: 52px; border-radius: 50%; background: #1e293b; color: #fff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mp-profile-info { flex: 1; min-width: 0; }
 .mp-nick-row { display: flex; align-items: center; gap: 8px; }
 .mp-birthdate { font-size: 13px; color: #94a3b8; margin-top: 2px; }
 .mp-profile-actions { display: flex; flex-direction: column; gap: 6px; margin-left: auto; }
@@ -439,141 +410,55 @@ function signed(value: number | undefined) {
 .mp-modal-enter-active .mp-modal, .mp-modal-leave-active .mp-modal { transition: transform .15s; }
 .mp-modal-enter-from .mp-modal, .mp-modal-leave-to .mp-modal { transform: scale(0.96) translateY(-6px); }
 .mp-withdraw-row { padding: 12px 28px 20px; border-top: 1px solid #f1f5f9; }
-.mp-withdraw-btn {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 12px;
-  cursor: pointer;
-  text-decoration: underline;
-  font-family: inherit;
-}
-.mp-withdraw-btn:hover { color: #ef4444; }
-
-.mp-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.4);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mp-modal {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.15);
-}
+.mp-withdraw-btn { background: none; border: 0; color: #94a3b8; font-size: 12px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+.mp-withdraw-btn:hover { color: #dc2626; }
+.mp-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.mp-modal { background: #fff; border-radius: 14px; padding: 28px; width: min(400px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,.15); }
 .mp-modal-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
 .mp-modal-desc { font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 24px; }
 .mp-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-.mp-modal-cancel {
-  padding: 9px 18px;
-  background: none;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  font-family: inherit;
-}
-.mp-modal-confirm {
-  padding: 9px 18px;
-  background: #ef4444;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-}
+.mp-modal-cancel,
+.mp-modal-confirm { padding: 9px 18px; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: inherit; }
+.mp-modal-cancel { background: #fff; border: 1px solid #e2e8f0; color: #64748b; }
+.mp-modal-confirm { background: #dc2626; color: #fff; border: 0; font-weight: 600; }
 .mp-modal-confirm:disabled { opacity: .5; cursor: not-allowed; }
-
-.mp-section > .mp-section-hdr { padding: 24px 28px 0; }
-.mp-report-card { padding: 28px; }
-.mp-report-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.mp-report-kicker { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: #3b82f6; margin-bottom: 4px; }
-.mp-report-title { font-size: 16px; font-weight: 600; color: #1e293b; line-height: 1.4; }
-.mp-report-status {
-  padding: 3px 9px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #dcfce7;
-  color: #16a34a;
-  white-space: nowrap;
-}
-.mp-report-status.fallback { background: #fef9c3; color: #ca8a04; }
-.mp-report-summary {
-  font-size: 14px;
-  color: #475569;
-  line-height: 1.7;
-  margin-bottom: 16px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  overflow: hidden;
-}
-.mp-report-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-.mp-metric { display: flex; flex-direction: column; gap: 3px; }
-.mp-metric span { font-size: 11px; color: #94a3b8; }
-.mp-metric strong { font-size: 15px; font-weight: 700; color: #1e293b; }
-.mp-metric strong.neg { color: #ef4444; }
+.mp-report-list { display: grid; gap: 12px; padding: 24px 28px 28px; }
+.mp-report-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; background: #fff; }
+.mp-report-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.mp-report-kicker { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: #2563eb; margin-bottom: 4px; }
+.mp-report-title { font-size: 16px; font-weight: 700; color: #1e293b; line-height: 1.45; word-break: keep-all; }
 .mp-report-meta { font-size: 12px; color: #94a3b8; margin-bottom: 14px; }
 .mp-report-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .mp-download-btn,
-.mp-persona-btn {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s;
-  font-family: inherit;
-}
+.mp-persona-btn,
+.mp-delete-btn { width: 100%; padding: 10px; border: 0; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .15s; font-family: inherit; }
 .mp-download-btn { background: #1e293b; color: #fff; }
 .mp-download-btn:hover:not(:disabled) { background: #334155; }
-.mp-persona-btn { background: #3b82f6; color: #fff; }
-.mp-persona-btn:hover:not(:disabled) { background: #2563eb; }
+.mp-persona-btn { background: #2563eb; color: #fff; }
+.mp-persona-btn:hover:not(:disabled) { background: #1d4ed8; }
+.mp-delete-btn { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+.mp-delete-btn:hover:not(:disabled) { background: #ffe4e6; border-color: #fda4af; }
+.mp-delete-btn-sm { width: auto; padding: 5px 10px; border-radius: 999px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
 .mp-download-btn:disabled,
-.mp-persona-btn:disabled { opacity: .5; cursor: not-allowed; }
-.mp-scenario-hint { margin-top: 10px; font-size: 12px; color: #64748b; }
+.mp-persona-btn:disabled,
+.mp-delete-btn:disabled { opacity: .5; cursor: not-allowed; }
+.mp-report-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 6px; }
+.mp-page-btn { border: 1px solid #e2e8f0; background: #fff; color: #475569; border-radius: 7px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 700; padding: 7px 13px; }
+.mp-page-btn:hover:not(:disabled) { border-color: #cbd5e1; color: #1e293b; }
+.mp-page-btn:disabled { cursor: not-allowed; opacity: .45; }
+.mp-page-state { color: #64748b; font-size: 13px; font-weight: 700; min-width: 54px; text-align: center; }
+.mp-scenario-hint { margin: 0 28px 20px; font-size: 12px; color: #64748b; }
 .mp-scenario-hint.err { color: #dc2626; }
-
-.mp-report-empty { padding: 60px 28px; text-align: center; }
-.mp-empty-icon { font-size: 40px; margin-bottom: 12px; }
-.mp-report-empty p { font-size: 15px; color: #475569; font-weight: 500; }
+.mp-report-empty { padding: 52px 28px; text-align: center; }
+.mp-empty-icon { display: inline-flex; align-items: center; justify-content: center; height: 34px; padding: 0 12px; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: 11px; font-weight: 800; letter-spacing: .12em; margin-bottom: 14px; }
+.mp-report-empty p { font-size: 15px; color: #475569; font-weight: 600; }
 .mp-empty-sub { font-size: 13px; color: #94a3b8; margin-top: 6px; font-weight: 400; }
-.mp-go-analysis {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 10px 24px;
-  background: #1e293b;
-  color: #fff;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background .15s;
-}
+.mp-go-analysis { display: inline-block; margin-top: 20px; padding: 10px 24px; background: #1e293b; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; transition: background .15s; }
 .mp-go-analysis:hover { background: #334155; }
 
 @media (max-width: 720px) {
-  .mp-report-actions,
-  .mp-report-metrics { grid-template-columns: 1fr; }
+  .mp-main { padding: 24px 14px; }
+  .mp-profile-card { align-items: flex-start; }
+  .mp-report-actions { grid-template-columns: 1fr; }
 }
 </style>

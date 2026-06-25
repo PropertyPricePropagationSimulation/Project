@@ -15,6 +15,21 @@ export interface ReportDocument {
   analysis_result: ReportAnalysisResult
 }
 
+export interface ReportHistoryItem {
+  report_id: string
+  analysis_cache_id: number
+  title: string
+  status: 'COMPLETED' | 'DRAFT_FALLBACK'
+  created_at: string
+}
+
+export interface ReportHistoryPage {
+  content: ReportHistoryItem[]
+  page: number
+  size: number
+  totalCount: number
+}
+
 export interface ReportSource {
   analysis_cache_id?: number
   event_id?: number

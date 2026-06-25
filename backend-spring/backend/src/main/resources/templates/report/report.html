@@ -5,9 +5,10 @@
   <style>
     @page { size: A4; margin: 0; }
     * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
     body { color: #172033; font-family: 'Noto Sans KR', sans-serif; font-size: 10pt; line-height: 1.65; }
     h1, h2, h3, p { margin: 0; }
-    .cover { background: #101827; color: #f8fafc; height: 297mm; padding: 38mm 20mm 28mm; page-break-after: always; }
+    .cover { background: #101827; color: #f8fafc; height: 297mm; min-height: 297mm; padding: 38mm 20mm 28mm; page-break-after: always; overflow: hidden; }
     .cover-brand { color: #3ab8f2; font-size: 15pt; font-weight: bold; letter-spacing: .16em; }
     .cover-subtitle { color: #a7b7cf; font-size: 13pt; letter-spacing: .12em; margin-top: 10mm; }
     .cover-title { border-left: 3mm solid #3ab8f2; font-size: 29pt; line-height: 1.42; margin-top: 20mm; padding-left: 14mm; word-break: keep-all; }

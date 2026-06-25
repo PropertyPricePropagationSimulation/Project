@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.home.domain.report.repository.ReportHistoryRepository">
+
+    <resultMap id="reportHistoryResultMap" type="com.example.home.domain.report.entity.ReportHistory">
+        <id     property="reportId"        column="report_id"/>
+        <result property="userId"          column="user_id"/>
+        <result property="analysisCacheId" column="analysis_cache_id"/>
+        <result property="title"           column="title"/>
+        <result property="status"          column="status"/>
+        <result property="createdAt"       column="created_at"/>
+        <result property="updatedAt"       column="updated_at"/>
+        <result property="deletedAt"       column="deleted_at"/>
+    </resultMap>
+
+    <select id="findByUserIdAndAnalysisCacheId" resultMap="reportHistoryResultMap">
+        SELECT report_id, user_id, analysis_cache_id, title, status, created_at, updated_at, deleted_at
+        FROM report_history
+        WHERE user_id = #{userId}
+          AND analysis_cache_id = #{analysisCacheId}
+    </select>
+
+    <select id="findByUserIdAndReportId" resultMap="reportHistoryResultMap">
+        SELECT report_id, user_id, analysis_cache_id, title, status, created_at, updated_at, deleted_at
+        FROM report_history
+        WHERE user_id = #{userId}
+          AND report_id = #{reportId}
+    </select>
+
+    <select id="findAllByUserId" resultMap="reportHistoryResultMap">
+        SELECT report_id, user_id, analysis_cache_id, title, status, created_at, updated_at, deleted_at
+        FROM report_history
+        WHERE user_id = #{userId}
+          AND deleted_at IS NULL
+        ORDER BY created_at DESC, report_id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM report_history
+        WHERE user_id = #{userId}
+          AND deleted_at IS NULL
+    </select>
+
+    <insert id="save">
+        INSERT INTO report_history (
+            report_id,
+            user_id,
+            analysis_cache_id,
+            title,
+            status,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            #{reportId},
+            #{userId},
+            #{analysisCacheId},
+            #{title},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <update id="restoreByUserIdAndAnalysisCacheId">
+        UPDATE report_history
+        SET deleted_at = NULL,
+            updated_at = NOW()
+        WHERE user_id = #{userId}
+          AND analysis_cache_id = #{analysisCacheId}
+    </update>
+
+    <update id="softDelete">
+        UPDATE report_history
+        SET deleted_at = NOW(),
+            updated_at = NOW()
+        WHERE user_id = #{userId}
+          AND report_id = #{reportId}
+          AND deleted_at IS NULL
+    </update>
+
+</mapper>

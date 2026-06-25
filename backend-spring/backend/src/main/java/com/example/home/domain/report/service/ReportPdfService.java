@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,10 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 @Service
 @RequiredArgsConstructor
 public class ReportPdfService {
+
+    private static final Pattern HARD_TO_READ_UNIT_SENTENCE = Pattern.compile(
+            "[^.!?。\\n]*(sqm|㎡|m2|m²|제곱미터|평당|면적당|단위면적)[^.!?。\\n]*[.!?。]?",
+            Pattern.CASE_INSENSITIVE);
 
     private final SpringTemplateEngine templateEngine;
 
@@ -67,31 +72,33 @@ public class ReportPdfService {
 
         String summary;
         if (enhanced) {
-            summary = text(enhancement, "executive_summary");
+            summary = readableText(text(enhancement, "executive_summary"));
             for (JsonNode section : enhancement.path("sections")) {
-                sections.add(new SectionView(text(section, "title"), text(section, "content")));
+                sections.add(new SectionView(text(section, "title"), readableText(text(section, "content"))));
             }
             for (JsonNode region : enhancement.path("regional_trends")) {
                 List<String> evidence = new ArrayList<>();
                 for (JsonNode item : region.path("evidence")) {
                     if (item.isTextual() && !item.asText().isBlank()) {
-                        evidence.add(item.asText());
+                        evidence.add(readableText(item.asText()));
                     }
                 }
                 regionalTrends.add(new RegionalTrendView(
                         text(region, "region_name"),
-                        text(region, "selection_reason"),
-                        text(region, "trend"),
-                        text(region, "comparative_interpretation"),
+                        readableText(text(region, "selection_reason")),
+                        readableText(text(region, "trend")),
+                        readableText(text(region, "comparative_interpretation")),
                         evidence));
             }
-            cautions.addAll(textValues(enhancement.path("cautions")));
+            cautions.addAll(readableTextValues(enhancement.path("cautions")));
         } else {
-            summary = report.draft().overview();
+            summary = readableText(report.draft().overview());
             for (String finding : report.draft().keyFindings()) {
-                sections.add(new SectionView("", finding));
+                sections.add(new SectionView("", readableText(finding)));
             }
-            cautions.addAll(report.draft().cautions());
+            cautions.addAll(report.draft().cautions().stream()
+                    .map(this::readableText)
+                    .toList());
         }
 
         JsonNode analysisSummary = report.analysisResult() == null
@@ -150,6 +157,12 @@ public class ReportPdfService {
         return values;
     }
 
+    private List<String> readableTextValues(JsonNode nodes) {
+        return textValues(nodes).stream()
+                .map(this::readableText)
+                .toList();
+    }
+
     private int intValue(JsonNode node, String field) {
         if (node == null) {
             return 0;
@@ -162,6 +175,16 @@ public class ReportPdfService {
             return "-";
         }
         return String.format(Locale.US, "%+.2f%%", node.path(field).asDouble());
+    }
+
+    private String readableText(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        return HARD_TO_READ_UNIT_SENTENCE.matcher(value)
+                .replaceAll("")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
     }
 
     public record ReportPdfView(
