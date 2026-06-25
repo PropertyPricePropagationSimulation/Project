@@ -11,6 +11,7 @@ const props = defineProps<{
   currentRelativeMonth: number // -3 ~ +windowMonths
   showLabels: boolean
   paused: boolean
+  playing: boolean
 }>()
 
 const emit = defineEmits<{
@@ -18,7 +19,7 @@ const emit = defineEmits<{
 }>()
 
 const INIT = { center: [127.02, 37.52] as [number, number], zoom: 10.2, pitch: 55, bearing: -10 }
-const LERP = 0.07
+const LERP = 0.12
 let map: mapboxgl.Map | null = null
 const NODATA = '#d4dae3'
 const LINE = 'rgba(20,30,50,.12)'
@@ -26,8 +27,46 @@ let baseGeoJSON: Record<string, unknown> | null = null
 let mapLoaded = false
 let animId: number | null = null
 let containerRO: ResizeObserver | null = null
+let labelPoints: Array<Record<string, unknown>> = []
 const dispVals: Record<string, number> = {}
 const regionMap: Record<string, RegionResult> = {}
+
+function polygonCentroid(ring: number[][]): [number, number] {
+  let area = 0, cx = 0, cy = 0
+  const n = ring.length - 1 // closed ring: last === first
+  for (let i = 0; i < n; i++) {
+    const x0 = ring[i]![0]!, y0 = ring[i]![1]!
+    const x1 = ring[i + 1]![0]!, y1 = ring[i + 1]![1]!
+    const cross = x0 * y1 - x1 * y0
+    area += cross
+    cx   += (x0 + x1) * cross
+    cy   += (y0 + y1) * cross
+  }
+  area /= 2
+  return [cx / (6 * area), cy / (6 * area)]
+}
+
+function featureCentroid(f: Record<string, unknown>): [number, number] {
+  const geom = f.geometry as { type: string; coordinates: unknown }
+  if (geom.type === 'Polygon') {
+    return polygonCentroid((geom.coordinates as number[][][])[0]!)
+  }
+  // MultiPolygon: 꼭짓점 수가 가장 많은(= 가장 큰) polygon의 exterior ring 사용
+  const polys = geom.coordinates as number[][][][]
+  const ring = polys.reduce((max, p) => p[0]!.length > max[0]!.length ? p : max)[0]!
+  return polygonCentroid(ring)
+}
+
+function buildLabelPoints(features: Array<Record<string, unknown>>) {
+  labelPoints = features.map((f) => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: featureCentroid(f) },
+    properties: {
+      name: (f.properties as Record<string, unknown>).name,
+      labelColor: '#64748b',
+    },
+  }))
+}
 
 function buildRegionMap() {
   Object.keys(regionMap).forEach((k) => delete regionMap[k])
@@ -47,12 +86,13 @@ function getTarget(name: string): number {
 
 function pushMapData() {
   if (!baseGeoJSON || !map) return
+
+  // polygon source: fill-extrusion 색/높이
   const features = (baseGeoJSON.features as Array<Record<string, unknown>>).map((f) => {
     const p = f.properties as Record<string, unknown>
     const name = p.name as string
     const region = regionMap[name]
     const v = dispVals[name] ?? 0
-    const col = valToColor(v)
     const lag = region?.window_summary.lag_months ?? null
     const active = lag !== null && props.currentRelativeMonth >= lag ? 1 : 0
     return {
@@ -60,21 +100,45 @@ function pushMapData() {
       properties: {
         ...p,
         value: v,
-        height: region ? Math.max(0, v) * 200 : 0,
+        height: region ? Math.max(100, 1500 + Math.sign(v) * Math.max(0, Math.abs(v) - 5) * 200) : 0,
         base: 0,
-        fillColor: region ? col : NODATA,
-        labelColor: region && Math.abs(v) > 2 ? col : '#64748b',
+        fillColor: region ? valToColor(v) : NODATA,
         active,
       },
     }
   })
   const src = map.getSource('districts') as mapboxgl.GeoJSONSource | undefined
   if (src)
-    src.setData({ type: 'FeatureCollection', features } as unknown as Parameters<
-      typeof src.setData
-    >[0])
+    src.setData({ type: 'FeatureCollection', features } as unknown as Parameters<typeof src.setData>[0])
+
+  // label point source: labelColor만 갱신
+  const labelFeatures = labelPoints.map((f) => {
+    const name = (f.properties as Record<string, unknown>).name as string
+    const v = dispVals[name] ?? 0
+    return {
+      ...f,
+      properties: {
+        ...(f.properties as object),
+        labelColor: regionMap[name] && Math.abs(v) > 2 ? valToColor(v) : '#64748b',
+      },
+    }
+  })
+  const labelSrc = map.getSource('district-label-points') as mapboxgl.GeoJSONSource | undefined
+  if (labelSrc)
+    labelSrc.setData({ type: 'FeatureCollection', features: labelFeatures } as unknown as Parameters<typeof labelSrc.setData>[0])
 }
 
+// 수동 스크럽: playing=false일 때만 즉시 스냅 (playing=true는 rAF 루프가 처리)
+watch(
+  () => props.currentRelativeMonth,
+  () => {
+    if (props.playing) return
+    Object.keys(regionMap).forEach((name) => { dispVals[name] = getTarget(name) })
+    if (mapLoaded) pushMapData()
+  },
+)
+
+// 자동 재생: LERP 0.12 → 800ms 인터벌 안에 수렴, play 종료 후 자연스럽게 완료
 function startAnim() {
   if (animId !== null) cancelAnimationFrame(animId)
   function loop() {
@@ -82,14 +146,10 @@ function startAnim() {
     Object.keys(regionMap).forEach((name) => {
       const target = getTarget(name)
       const cur = dispVals[name] ?? 0
+      if (cur === target) return
       const diff = target - cur
-      if (Math.abs(diff) > 0.01) {
-        dispVals[name] = cur + diff * LERP
-        moved = true
-      } else if (cur !== target) {
-        dispVals[name] = target
-        moved = true
-      }
+      dispVals[name] = Math.abs(diff) > 0.005 ? cur + diff * LERP : target
+      moved = true
     })
     if (moved && mapLoaded) pushMapData()
     animId = requestAnimationFrame(loop)
@@ -145,14 +205,14 @@ watch(
   },
 )
 
-// regions 교체 시 → regionMap 재구성 + dispVals 리셋
+// regions 교체 시 → regionMap 재구성 후 현재 슬라이더 위치로 즉시 스냅
 watch(
   () => props.regions,
   () => {
+    buildRegionMap() // getTarget이 regionMap을 참조하므로 먼저 호출
     Object.keys(dispVals).forEach((k) => {
-      dispVals[k] = 0
+      dispVals[k] = getTarget(k) // 현재 월 target으로 스냅 (없으면 0)
     })
-    buildRegionMap()
     if (mapLoaded) pushMapData()
   },
 )
@@ -220,6 +280,8 @@ onMounted(() => {
       baseGeoJSON = await loadGeoJSON()
 
       const feats = baseGeoJSON.features as Array<Record<string, unknown>>
+      buildLabelPoints(feats)
+
       baseGeoJSON.features = feats.map((f) => ({
         ...f,
         properties: {
@@ -228,7 +290,6 @@ onMounted(() => {
           height: 0,
           base: 0,
           fillColor: NODATA,
-          labelColor: '#64748b',
           active: 0,
         },
       }))
@@ -236,6 +297,14 @@ onMounted(() => {
       map!.addSource('districts', {
         type: 'geojson',
         data: baseGeoJSON as unknown as mapboxgl.GeoJSONSourceSpecification['data'],
+      })
+
+      map!.addSource('district-label-points', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: labelPoints,
+        } as unknown as mapboxgl.GeoJSONSourceSpecification['data'],
       })
 
       map!.addLayer({
@@ -260,7 +329,7 @@ onMounted(() => {
       map!.addLayer({
         id: 'districts-labels',
         type: 'symbol',
-        source: 'districts',
+        source: 'district-label-points',
         layout: {
           'text-field': ['get', 'name'],
           'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
